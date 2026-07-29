@@ -1,13 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { X, ChevronDown, Calendar, Paperclip, Plus } from "lucide-react";
+import { useState, useEffect, useTransition } from "react";
+import {
+  X,
+  ChevronDown,
+  Calendar,
+  Paperclip,
+  Plus,
+  Loader2,
+} from "lucide-react";
+import { createAssignment } from "@/actions/assignment";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
 export interface CreateAssignmentModalProps {
   isOpen: boolean;
   onClose: () => void;
+  /** Replace with the real authenticated teacher ID from your session */
+  teacherId?: string;
 }
 
 interface RubricCriterion {
@@ -46,23 +56,23 @@ const SUBJECT_OPTIONS = [
 export default function CreateAssignmentModal({
   isOpen,
   onClose,
+  teacherId = "206101b5-fafb-469c-9617-055f562c82b8",
 }: CreateAssignmentModalProps) {
-  const [title, setTitle] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
-  const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [criteria, setCriteria] = useState<RubricCriterion[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
 
   // Reset form every time the modal opens
   useEffect(() => {
     if (isOpen) {
-      setTitle("");
       setSelectedClass("");
       setSelectedSubject("");
-      setDescription("");
       setDueDate("");
       setCriteria([]);
+      setError(null);
     }
   }, [isOpen]);
 
@@ -91,20 +101,6 @@ export default function CreateAssignmentModal({
     );
   }
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    // TODO: POST to /api/assignments
-    console.log({
-      title,
-      selectedClass,
-      selectedSubject,
-      description,
-      dueDate,
-      criteria,
-    });
-    onClose();
-  }
-
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
@@ -128,9 +124,36 @@ export default function CreateAssignmentModal({
         {/* ── Scrollable body ── */}
         <form
           id="create-assignment-form"
-          onSubmit={handleSubmit}
           className="overflow-y-auto px-6 pb-4 flex-1 space-y-5"
+          action={async (formData) => {
+            setError(null);
+            startTransition(async () => {
+              const result = await createAssignment({
+                title: formData.get("title") as string,
+                description: formData.get("description") as string,
+                type: "FILE_UPLOAD",
+                dueDate: formData.get("dueDate") as string,
+                teacherId,
+              });
+              if (result.success) {
+                onClose();
+              } else {
+                setError(result.error);
+              }
+            });
+          }}
         >
+          {/* Hidden fields */}
+          <input type="hidden" name="teacherId" value={teacherId} />
+          <input type="hidden" name="type" value="FILE_UPLOAD" />
+
+          {/* Error banner */}
+          {error && (
+            <p className="text-[11px] text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              {error}
+            </p>
+          )}
+
           {/* Title */}
           <div>
             <label
@@ -141,9 +164,8 @@ export default function CreateAssignmentModal({
             </label>
             <input
               id="ca-title"
+              name="title"
               type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
               placeholder="e.g. Algebra Practice Set 4"
               required
               className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-[12px] text-[#1a2332] placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#1a2332] transition"
@@ -162,6 +184,7 @@ export default function CreateAssignmentModal({
               <div className="relative">
                 <select
                   id="ca-class"
+                  name="classTag"
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
                   required
@@ -191,6 +214,7 @@ export default function CreateAssignmentModal({
               <div className="relative">
                 <select
                   id="ca-subject"
+                  name="subject"
                   value={selectedSubject}
                   onChange={(e) => setSelectedSubject(e.target.value)}
                   required
@@ -221,8 +245,7 @@ export default function CreateAssignmentModal({
             </label>
             <textarea
               id="ca-description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              name="description"
               placeholder="What students need to do..."
               rows={4}
               className="w-full border border-gray-200 rounded-lg px-3.5 py-2.5 text-[12px] text-[#1a2332] placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#1a2332] resize-none transition"
@@ -262,6 +285,7 @@ export default function CreateAssignmentModal({
               </label>
               <input
                 id="ca-due-date"
+                name="dueDate"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
@@ -296,14 +320,15 @@ export default function CreateAssignmentModal({
               Leave empty to grade on a 0–100 score
             </p>
 
-            {/* ── Expanded state: flat inline rows ── */}
+            {/* Expanded state: flat inline rows */}
             {criteria.length > 0 && (
               <div className="space-y-2">
-                {criteria.map((c) => (
+                {criteria.map((c, idx) => (
                   <div key={c.id} className="flex items-center gap-2">
-                    {/* Criterion label */}
+                    {/* Criterion label — named for FormData */}
                     <input
                       type="text"
+                      name={`criterion_label_${idx}`}
                       placeholder="Criterion (e.g. Accuracy, Presentation)"
                       value={c.label}
                       onChange={(e) =>
@@ -315,6 +340,7 @@ export default function CreateAssignmentModal({
                     {/* Points */}
                     <input
                       type="number"
+                      name={`criterion_points_${idx}`}
                       min={1}
                       max={100}
                       value={c.points}
@@ -354,7 +380,7 @@ export default function CreateAssignmentModal({
               <span className="text-[12px] text-gray-400 group-hover:text-[#1a2332] transition-colors">
                 Attach files (simulated)
               </span>
-              <input type="file" multiple className="hidden" />
+              <input type="file" name="file" multiple className="hidden" />
             </label>
           </div>
         </form>
@@ -364,16 +390,19 @@ export default function CreateAssignmentModal({
           <button
             type="button"
             onClick={onClose}
-            className="text-[12px] font-semibold text-gray-500 hover:text-[#1a2332] transition-colors px-2 py-2"
+            disabled={isPending}
+            className="text-[12px] font-semibold text-gray-500 hover:text-[#1a2332] transition-colors px-2 py-2 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             type="submit"
             form="create-assignment-form"
-            className="bg-[#1a2332] text-white text-[12px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#243047] active:bg-[#111b2a] transition-colors"
+            disabled={isPending}
+            className="flex items-center gap-1.5 bg-[#1a2332] text-white text-[12px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#243047] active:bg-[#111b2a] transition-colors disabled:opacity-70"
           >
-            Post Assignment
+            {isPending && <Loader2 size={13} className="animate-spin" />}
+            {isPending ? "Posting…" : "Post Assignment"}
           </button>
         </div>
       </div>
