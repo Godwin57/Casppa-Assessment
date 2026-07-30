@@ -176,12 +176,12 @@ export async function getAssessmentDetail(assignmentId: string) {
               id: res.id,
               studentName: res.student?.name || "Unknown",
               initials,
-              status: "MARKED", // CBTs are auto-graded
+              status: res.status,
               evaluation: null,
               score: res.score,
               content: null,
               fileUrl: null,
-              generalFeedback: "Auto-graded via CBT",
+              generalFeedback: res.status === "PENDING" ? "Pending manual review." : "Auto-graded via CBT",
               inlineComments: [],
             };
           }),

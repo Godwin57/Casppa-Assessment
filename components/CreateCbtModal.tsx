@@ -48,8 +48,8 @@ export default function CreateCbtModal({ isOpen, onClose }: CreateCbtModalProps)
         id: `q-${Date.now()}`,
         type,
         prompt: "",
-        options: type === "MCQ" ? ["", "", "", ""] : ["True", "False"],
-        correctAnswer: type === "MCQ" ? "0" : "True",
+        options: type === "MCQ" ? ["", "", "", ""] : type === "TRUE_FALSE" ? ["True", "False"] : [],
+        correctAnswer: type === "MCQ" ? "0" : type === "TRUE_FALSE" ? "True" : "",
         points: 1
       }
     ]);
@@ -182,6 +182,9 @@ export default function CreateCbtModal({ isOpen, onClose }: CreateCbtModalProps)
                   <button type="button" onClick={() => addQuestion("TRUE_FALSE")} className="flex items-center gap-1.5 bg-purple-50 text-purple-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-purple-100 transition-colors">
                     <Plus size={14} /> Add T/F
                   </button>
+                  <button type="button" onClick={() => addQuestion("SHORT_ANSWER")} className="flex items-center gap-1.5 bg-emerald-50 text-emerald-700 text-[11px] font-semibold px-3 py-1.5 rounded-lg hover:bg-emerald-100 transition-colors">
+                    <Plus size={14} /> Add Short Answer
+                  </button>
                 </div>
               </div>
 
@@ -196,7 +199,7 @@ export default function CreateCbtModal({ isOpen, onClose }: CreateCbtModalProps)
                       <div className="flex items-start justify-between mb-3 gap-4">
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-bold bg-[#1a2332] text-white px-2 py-0.5 rounded">Q{qIndex + 1}</span>
-                          <span className="text-[11px] font-semibold text-gray-500">{q.type === "MCQ" ? "Multiple Choice" : "True / False"}</span>
+                          <span className="text-[11px] font-semibold text-gray-500">{q.type === "MCQ" ? "Multiple Choice" : q.type === "TRUE_FALSE" ? "True / False" : "Short Answer"}</span>
                         </div>
                         <button type="button" onClick={() => removeQuestion(q.id)} className="text-red-400 hover:text-red-600 transition-colors">
                           <Trash2 size={16} />

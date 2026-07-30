@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 
 interface CbtQuestionDraft {
-  type: "MCQ" | "TRUE_FALSE";
+  type: "MCQ" | "TRUE_FALSE" | "SHORT_ANSWER";
   prompt: string;
   options: string[];
   correctAnswer: string;
@@ -50,7 +50,7 @@ export async function createCbtExam(data: CreateCbtExamInput) {
           create: data.questions.map((q) => ({
             type: q.type,
             prompt: q.prompt.trim(),
-            options: q.type === "MCQ" ? q.options : ["True", "False"],
+            options: q.type === "MCQ" ? q.options : q.type === "TRUE_FALSE" ? ["True", "False"] : [],
             correctAnswer: q.correctAnswer,
             points: q.points,
           })),
@@ -109,9 +109,14 @@ export async function submitCbtExam(examId: string, answers: Record<string, stri
     }
 
     let score = 0;
+    let hasShortAnswer = false;
     
     // Auto-grade
     for (const question of exam.questions) {
+      if (question.type === "SHORT_ANSWER") {
+        hasShortAnswer = true;
+        continue;
+      }
       const studentAnswer = answers[question.id];
       if (studentAnswer && studentAnswer === question.correctAnswer) {
         score += question.points;
@@ -124,14 +129,54 @@ export async function submitCbtExam(examId: string, answers: Record<string, stri
         cbtExamId: examId,
         studentId: student.id,
         score,
+        status: hasShortAnswer ? "PENDING" : "MARKED",
         answers,
       },
     });
 
     revalidatePath("/student");
-    return { success: true, score };
+    return { success: true, score, status: hasShortAnswer ? "PENDING" : "MARKED" };
   } catch (error) {
     console.error("[submitCbtExam]", error);
     return { success: false, error: "An unexpected error occurred while submitting." };
+  }
+}
+
+export async function gradeCbtSubmission(submissionId: string, manualScores: Record<string, number>) {
+  try {
+    const result = await prisma.cbtResult.findUnique({
+      where: { id: submissionId },
+      include: { cbtExam: { include: { questions: true } } }
+    });
+
+    if (!result) return { success: false, error: "Submission not found" };
+
+    let totalScore = 0;
+    const answers = result.answers as Record<string, string>;
+    
+    for (const question of result.cbtExam.questions) {
+      if (question.type === "SHORT_ANSWER") {
+        totalScore += manualScores[question.id] || 0;
+      } else {
+        const studentAnswer = answers[question.id];
+        if (studentAnswer && studentAnswer === question.correctAnswer) {
+          totalScore += question.points;
+        }
+      }
+    }
+
+    await prisma.cbtResult.update({
+      where: { id: submissionId },
+      data: {
+        score: totalScore,
+        status: "MARKED"
+      }
+    });
+
+    revalidatePath(`/teacher/assessments/cbt/${result.cbtExamId}`);
+    return { success: true };
+  } catch (error) {
+    console.error("[gradeCbtSubmission]", error);
+    return { success: false, error: "An unexpected error occurred while grading." };
   }
 }

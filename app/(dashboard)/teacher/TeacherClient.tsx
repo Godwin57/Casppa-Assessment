@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   User,
@@ -173,6 +174,7 @@ export default function TeacherClient({
   error?: string;
 }) {
   const [activeTab, setActiveTab] = useState("Assignments");
+  const router = useRouter();
   const [selectedAssignment, setSelectedAssignment] =
     useState<AssignmentDetail | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -377,7 +379,7 @@ export default function TeacherClient({
                     <AssignmentCard
                       key={exam.id}
                       assignment={exam}
-                      onClick={() => console.log("CBT Exam Click", exam)}
+                      onClick={() => router.push(`/teacher/assessments/cbt/${exam.id}`)}
                     />
                   ))
                 )}

@@ -24,6 +24,7 @@ export default function TakeCbtModal({
   
   const [showResult, setShowResult] = useState(false);
   const [finalScore, setFinalScore] = useState<number | null>(null);
+  const [resultStatus, setResultStatus] = useState<string>("MARKED");
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -62,6 +63,7 @@ export default function TakeCbtModal({
       const result = await submitCbtExam(examId, answers);
       if (result.success) {
         setFinalScore(result.score as number);
+        setResultStatus(result.status as string);
         setShowResult(true);
         onSuccess();
       } else {
@@ -98,14 +100,26 @@ export default function TakeCbtModal({
             <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
               <CheckCircle2 size={64} className="text-green-500 mb-6" />
               <h3 className="text-2xl font-bold text-[#1a2332] mb-2">Assessment Completed!</h3>
-              <p className="text-gray-500 mb-8">Your answers have been auto-graded successfully.</p>
               
-              <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 w-full max-w-sm shadow-sm">
-                <p className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Final Score</p>
-                <p className="text-5xl font-black text-[#1a2332]">
-                  {finalScore} <span className="text-2xl text-gray-400 font-bold">/ {maxScore}</span>
-                </p>
-              </div>
+              {resultStatus === "PENDING" ? (
+                <>
+                  <p className="text-gray-500 mb-8">Your submission includes short answers and is pending manual review.</p>
+                  <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl p-8 mb-8 w-full max-w-sm shadow-sm text-center">
+                    <p className="font-bold text-[15px]">Pending Manual Review</p>
+                    <p className="text-[12px] mt-2 text-amber-600">Your final score will be available once your teacher grades your written answers.</p>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <p className="text-gray-500 mb-8">Your answers have been auto-graded successfully.</p>
+                  <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 w-full max-w-sm shadow-sm">
+                    <p className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Final Score</p>
+                    <p className="text-5xl font-black text-[#1a2332]">
+                      {finalScore} <span className="text-2xl text-gray-400 font-bold">/ {maxScore}</span>
+                    </p>
+                  </div>
+                </>
+              )}
 
               <button onClick={onClose} className="bg-[#1a2332] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#243047] transition-colors">
                 Back to Dashboard
@@ -156,7 +170,7 @@ export default function TakeCbtModal({
                         </button>
                       );
                     })
-                  ) : (
+                  ) : currentQuestion.type === "TRUE_FALSE" ? (
                     ["True", "False"].map((opt) => {
                       const isSelected = answers[currentQuestion.id] === opt;
                       return (
@@ -173,6 +187,13 @@ export default function TakeCbtModal({
                         </button>
                       );
                     })
+                  ) : (
+                    <textarea
+                      placeholder="Type your answer here..."
+                      value={answers[currentQuestion.id] || ""}
+                      onChange={(e) => handleSelect(currentQuestion.id, e.target.value)}
+                      className="w-full h-32 p-4 rounded-xl border-2 border-gray-100 bg-white text-[#1a2332] text-[14px] focus:border-[#1a2332] focus:outline-none transition-all resize-none"
+                    />
                   )}
                 </div>
               </div>

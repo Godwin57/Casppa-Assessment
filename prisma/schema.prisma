@@ -162,7 +162,8 @@ model CbtResult {
   id          String   @id @default(uuid())
   cbtExamId   String
   studentId   String
-  score       Float
+  score       Float?
+  status      SubmissionStatus @default(MARKED)
   answers     Json     // Store student's answers { questionId: answer }
   submittedAt DateTime @default(now())
 
