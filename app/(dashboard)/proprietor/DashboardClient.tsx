@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { useRouter } from "next/navigation";
+import ProprietorAssessmentModal from "@/components/ProprietorAssessmentModal";
 import {
   LayoutDashboard,
   Users,
@@ -59,7 +59,7 @@ const sidebarLinks = [
 
 export default function DashboardClient({ data }: { data: DashboardData }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const router = useRouter();
+  const [selectedAssessmentId, setSelectedAssessmentId] = useState<string | null>(null);
   const { metrics, tableData } = data;
 
   return (
@@ -283,7 +283,7 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                       tableData.map((assessment) => (
                         <tr
                           key={assessment.id}
-                          onClick={() => router.push(`/proprietor/assessments/${assessment.id}`)}
+                          onClick={() => setSelectedAssessmentId(assessment.id)}
                           className="hover:bg-gray-50 transition-colors cursor-pointer"
                         >
                           <td className="px-6 py-4 whitespace-nowrap">
@@ -339,6 +339,12 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
           </div>
         </div>
       </main>
+
+      {/* Assessment Detail Modal */}
+      <ProprietorAssessmentModal
+        assessmentId={selectedAssessmentId}
+        onClose={() => setSelectedAssessmentId(null)}
+      />
     </div>
   );
 }

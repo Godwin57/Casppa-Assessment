@@ -11,7 +11,7 @@ export function DevRoleSwitcher() {
   if (pathname === "/login") return null;
 
   return (
-    <div className="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-xl rounded-xl p-2 flex gap-2 z-[9999]">
+    <div className="fixed bottom-4 right-4 bg-white border border-gray-200 shadow-xl rounded-xl p-2 flex gap-2 z-40">
       <button
         onClick={() => router.push("/student")}
         className="flex items-center gap-1.5 px-3 py-1.5 text-[11px] font-medium text-gray-600 hover:bg-gray-50 hover:text-[#1a2332] rounded-lg transition-colors"

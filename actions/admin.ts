@@ -69,3 +69,63 @@ export async function getAcademicOversightData() {
     return { error: "Failed to load dashboard data." };
   }
 }
+
+export async function getAssessmentDetail(assignmentId: string) {
+  try {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        teacher: { select: { name: true } },
+        submissions: {
+          include: {
+            student: { select: { name: true } },
+            inlineComments: {
+              select: { id: true, xCoordinate: true, yCoordinate: true, text: true },
+            },
+          },
+          orderBy: { student: { name: "asc" } },
+        },
+      },
+    });
+
+    if (!assignment) return { error: "Assignment not found." };
+
+    return {
+      assignment: {
+        id: assignment.id,
+        title: assignment.title,
+        description: assignment.description,
+        type: assignment.type,
+        dueDate: assignment.dueDate,
+        teacherName: assignment.teacher.name,
+        submissions: assignment.submissions.map((sub) => {
+          const nameParts = (sub.student?.name || "Unknown").split(" ");
+          const initials =
+            nameParts.length > 1
+              ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+              : nameParts[0][0].toUpperCase();
+          return {
+            id: sub.id,
+            studentName: sub.student?.name || "Unknown",
+            initials,
+            status: sub.status,
+            evaluation: sub.evaluation ?? null,
+            score: sub.score ?? null,
+            content: sub.content ?? null,
+            fileUrl: sub.fileUrl ?? null,
+            generalFeedback: sub.generalFeedback ?? null,
+            inlineComments: sub.inlineComments.map((c) => ({
+              id: c.id,
+              xCoordinate: c.xCoordinate,
+              yCoordinate: c.yCoordinate,
+              text: c.text,
+            })),
+          };
+        }),
+      },
+    };
+  } catch (error) {
+    console.error("Failed to fetch assessment detail:", error);
+    return { error: "Failed to load assessment details." };
+  }
+}
