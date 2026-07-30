@@ -47,7 +47,7 @@ export default function StudentClient({
   initialAssignments: StudentAssignment[];
   error?: string;
 }) {
-  // Modal for reviewing feedback on a RETURNED assignment
+  // Modal for reviewing feedback on a RETURNED or MARKED assignment
   const [feedbackAssignment, setFeedbackAssignment] = useState<{
     id: string;
     title: string;
@@ -57,6 +57,8 @@ export default function StudentClient({
     generalFeedback: string | null;
     studentNote: string | null;
     fileUrl: string | null;
+    score: number | null;
+    evaluation: string | null;
   } | null>(null);
 
   // Modal for submitting / resubmitting work
@@ -280,12 +282,20 @@ export default function StudentClient({
                           className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
                             assignment.submissionStatus === "RETURNED"
                               ? "bg-orange-100 text-orange-700"
+                              : assignment.submissionStatus === "MARKED"
+                              ? "bg-green-100 text-green-700"
                               : assignment.hasSubmitted
-                              ? "bg-[#e2e8f0] text-slate-700"
+                              ? "bg-blue-100 text-blue-700"
                               : "bg-orange-100 text-orange-700"
                           }`}
                         >
-                          {assignment.submissionStatus === "RETURNED" ? "Returned" : assignment.hasSubmitted ? "Submitted" : "To do"}
+                          {assignment.submissionStatus === "RETURNED"
+                            ? "Returned for Revision"
+                            : assignment.submissionStatus === "MARKED"
+                            ? `Graded${assignment.evaluation ? ` · ${assignment.evaluation.replace("_", " ")}` : ""}`
+                            : assignment.hasSubmitted
+                            ? "Submitted"
+                            : "To do"}
                         </span>
                       </div>
                       <h3 className="text-[14px] md:text-[15px] font-bold text-[#1a2332] mb-1">
@@ -307,9 +317,9 @@ export default function StudentClient({
                         &middot; {assignment.teacherName}
                       </p>
                     </div>
-                    <div className="sm:pt-2 flex w-full sm:w-auto">
+                    <div className="sm:pt-2 flex flex-col sm:items-end w-full sm:w-auto gap-1.5">
                       {assignment.submissionStatus === "RETURNED" ? (
-                        /* RETURNED: Show 'View Details' — opens feedback review first */
+                        /* RETURNED: View Details opens feedback review */
                         <button
                           onClick={() =>
                             setFeedbackAssignment({
@@ -321,6 +331,8 @@ export default function StudentClient({
                               generalFeedback: assignment.generalFeedback,
                               studentNote: assignment.studentNote,
                               fileUrl: assignment.fileUrl,
+                              score: assignment.score,
+                              evaluation: assignment.evaluation,
                             })
                           }
                           className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-orange-500 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-orange-600 transition-colors shadow-sm"
@@ -328,12 +340,40 @@ export default function StudentClient({
                           <Eye size={14} strokeWidth={2.5} />
                           View Details
                         </button>
+                      ) : assignment.submissionStatus === "MARKED" ? (
+                        /* MARKED: Show score badge + View Feedback button */
+                        <>
+                          {assignment.score !== null && (
+                            <span className="text-[13px] font-bold text-green-700">
+                              {assignment.score}
+                              <span className="text-[11px] font-medium text-gray-400">/100</span>
+                            </span>
+                          )}
+                          <button
+                            onClick={() =>
+                              setFeedbackAssignment({
+                                id: assignment.id,
+                                title: assignment.title,
+                                subject: "General",
+                                dueDate: formattedDate(assignment.dueDate),
+                                submissionId: assignment.submissionId,
+                                generalFeedback: assignment.generalFeedback,
+                                studentNote: assignment.studentNote,
+                                fileUrl: assignment.fileUrl,
+                                score: assignment.score,
+                                evaluation: assignment.evaluation,
+                              })
+                            }
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-green-600 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-green-700 transition-colors shadow-sm"
+                          >
+                            <Eye size={14} strokeWidth={2.5} />
+                            View Feedback
+                          </button>
+                        </>
                       ) : assignment.hasSubmitted ? (
-                        /* SUBMITTED / MARKED: Show score or awaiting grade */
+                        /* PENDING: submitted, waiting for teacher */
                         <span className="text-[11px] md:text-[12px] text-gray-400 font-medium">
-                          {assignment.score !== null
-                            ? `Score: ${assignment.score}%`
-                            : "Awaiting grade"}
+                          Awaiting grade
                         </span>
                       ) : (
                         /* NOT YET SUBMITTED: Show Submit button */
@@ -361,24 +401,28 @@ export default function StudentClient({
         </div>
       </main>
 
-      {/* Feedback Review Modal (RETURNED assignments) */}
+      {/* Feedback Review Modal (RETURNED and MARKED assignments) */}
       {feedbackAssignment && (
         <FeedbackReviewModal
           isOpen={true}
           onClose={() => setFeedbackAssignment(null)}
           assignment={feedbackAssignment}
-          onProceedToResubmit={() =>
-            setSelectedAssignment({
-              id: feedbackAssignment.id,
-              title: feedbackAssignment.title,
-              subject: feedbackAssignment.subject,
-              dueDate: feedbackAssignment.dueDate,
-              isResubmission: true,
-              submissionId: feedbackAssignment.submissionId,
-              generalFeedback: feedbackAssignment.generalFeedback,
-              studentNote: feedbackAssignment.studentNote,
-              fileUrl: feedbackAssignment.fileUrl,
-            })
+          onProceedToResubmit={
+            // Only RETURNED assignments allow resubmission; MARKED is a final grade
+            feedbackAssignment.evaluation === "NEEDS_REVISION"
+              ? () =>
+                  setSelectedAssignment({
+                    id: feedbackAssignment.id,
+                    title: feedbackAssignment.title,
+                    subject: feedbackAssignment.subject,
+                    dueDate: feedbackAssignment.dueDate,
+                    isResubmission: true,
+                    submissionId: feedbackAssignment.submissionId,
+                    generalFeedback: feedbackAssignment.generalFeedback,
+                    studentNote: feedbackAssignment.studentNote,
+                    fileUrl: feedbackAssignment.fileUrl,
+                  })
+              : undefined
           }
         />
       )}

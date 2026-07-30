@@ -29,7 +29,7 @@
 
 import { useState, useEffect } from "react";
 import { submitGrade, returnSubmission, getInlineComments } from "@/actions/grade";
-import { X, Star, Check, RefreshCw, Send, Loader2 } from "lucide-react";
+import { X, Star, Check, RefreshCw, Send, Loader2, AlertTriangle } from "lucide-react";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -86,6 +86,7 @@ export function FullMarkingView({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isReturning, setIsReturning] = useState(false);
+  const [showGradeConfirm, setShowGradeConfirm] = useState(false);
 
   useEffect(() => {
     // Only attempt to fetch if the modal is open and we have a valid ID
@@ -130,12 +131,19 @@ export function FullMarkingView({
     ]);
   };
 
-  async function handleSave() {
+  // Called by 'Save & Grade' button — opens confirmation gate first
+  function handleSaveClick() {
     if (!score) {
       setErrorMessage("Please enter a score before saving.");
       return;
     }
+    setErrorMessage(null);
+    setShowGradeConfirm(true);
+  }
 
+  // Called after teacher confirms in the dialog
+  async function handleConfirmGrade() {
+    setShowGradeConfirm(false);
     setIsSubmitting(true);
     setErrorMessage(null);
 
@@ -413,12 +421,54 @@ export function FullMarkingView({
             </div>
           )}
 
+          {/* ── Grade Confirmation Dialog ── */}
+          {showGradeConfirm && (
+            <div className="mx-5 mb-3 bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle size={16} className="text-amber-600 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-[12px] font-bold text-amber-800 mb-1">Confirm Grading</p>
+                  <p className="text-[11px] text-amber-700 leading-relaxed">
+                    Saving a grade is <span className="font-semibold">permanent</span>. If the student needs to revise their work first, consider returning it instead.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-col gap-2">
+                <button
+                  type="button"
+                  disabled={isSubmitting}
+                  onClick={handleConfirmGrade}
+                  className="w-full flex items-center justify-center gap-2 bg-[#1a2332] text-white text-[11px] font-semibold py-2.5 rounded-lg hover:bg-[#243047] transition-colors disabled:opacity-50"
+                >
+                  {isSubmitting ? <Loader2 size={13} className="animate-spin" /> : <Check size={13} strokeWidth={2.5} />}
+                  {isSubmitting ? "Saving..." : "Proceed to Grade"}
+                </button>
+                <button
+                  type="button"
+                  disabled={isReturning}
+                  onClick={() => { setShowGradeConfirm(false); handleReturn(); }}
+                  className="w-full flex items-center justify-center gap-2 bg-green-500 text-white text-[11px] font-semibold py-2.5 rounded-lg hover:bg-green-600 transition-colors disabled:opacity-50"
+                >
+                  {isReturning ? <Loader2 size={13} className="animate-spin" /> : <Send size={13} strokeWidth={2} />}
+                  {isReturning ? "Returning..." : "Return to Student Instead"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowGradeConfirm(false)}
+                  className="w-full text-[11px] font-semibold text-gray-500 hover:text-[#1a2332] hover:bg-gray-50 py-2 rounded-lg transition-colors"
+                >
+                  Cancel — Keep Editing
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Action buttons */}
           <div className="px-5 pb-5 pt-3 space-y-2 shrink-0 border-t border-gray-100">
             <button
               type="button"
-              disabled={isSubmitting || isReturning}
-              onClick={handleSave}
+              disabled={isSubmitting || isReturning || showGradeConfirm}
+              onClick={handleSaveClick}
               className="w-full flex items-center justify-center gap-2 bg-[#1a2332] text-white text-[12px] font-semibold py-3 rounded-xl hover:bg-[#243047] transition-colors disabled:opacity-50"
             >
               {isSubmitting ? <Loader2 size={14} strokeWidth={2.5} className="animate-spin" /> : <Check size={14} strokeWidth={2.5} />}
@@ -426,7 +476,7 @@ export function FullMarkingView({
             </button>
             <button
               type="button"
-              disabled={isSubmitting || isReturning}
+              disabled={isSubmitting || isReturning || showGradeConfirm}
               onClick={handleReturn}
               className="w-full flex items-center justify-center gap-2 bg-green-500 text-white text-[12px] font-semibold py-3 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
             >

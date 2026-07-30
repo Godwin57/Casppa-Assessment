@@ -25,8 +25,10 @@ export interface FeedbackReviewModalProps {
     generalFeedback: string | null;
     studentNote: string | null;
     fileUrl: string | null;
+    score?: number | null;
+    evaluation?: string | null;
   };
-  onProceedToResubmit: () => void;
+  onProceedToResubmit?: () => void;
 }
 
 // ── Component ────────────────────────────────────────────────────────────
@@ -71,12 +73,31 @@ export default function FeedbackReviewModal({
     >
       <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full max-w-xl shadow-2xl flex flex-col max-h-[92vh] animate-in slide-in-from-bottom-4 sm:slide-in-from-bottom-0 sm:zoom-in-95 duration-200">
         {/* ── Header ── */}
-        <div className="flex items-center justify-between px-5 pt-5 pb-4 shrink-0 border-b border-gray-100">
-          <div>
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                Returned for Revision
-              </span>
+        <div className="flex items-start justify-between px-5 pt-5 pb-4 shrink-0 border-b border-gray-100">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center flex-wrap gap-2 mb-1.5">
+              {/* Status badge */}
+              {assignment.evaluation ? (
+                <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                  assignment.evaluation === "NEEDS_REVISION"
+                    ? "bg-orange-100 text-orange-700"
+                    : assignment.evaluation === "EXCELLENT"
+                    ? "bg-green-100 text-green-700"
+                    : "bg-blue-100 text-blue-700"
+                }`}>
+                  {assignment.evaluation.replace("_", " ")}
+                </span>
+              ) : (
+                <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                  Returned for Revision
+                </span>
+              )}
+              {/* Score badge */}
+              {assignment.score !== null && assignment.score !== undefined && (
+                <span className="text-[11px] font-bold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded-full">
+                  Score: {assignment.score}/100
+                </span>
+              )}
             </div>
             <h2 className="text-[15px] font-bold text-[#1a2332] leading-snug">
               {assignment.title}
@@ -208,17 +229,19 @@ export default function FeedbackReviewModal({
           >
             Close
           </button>
-          <button
-            type="button"
-            onClick={() => {
-              onClose();
-              onProceedToResubmit();
-            }}
-            className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-[#1a2332] text-white text-[12px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#243047] transition-colors"
-          >
-            <RefreshCw size={13} strokeWidth={2.5} />
-            Revise &amp; Resubmit
-          </button>
+          {onProceedToResubmit && (
+            <button
+              type="button"
+              onClick={() => {
+                onClose();
+                onProceedToResubmit();
+              }}
+              className="w-full sm:w-auto flex items-center justify-center gap-1.5 bg-[#1a2332] text-white text-[12px] font-semibold px-5 py-2.5 rounded-lg hover:bg-[#243047] transition-colors"
+            >
+              <RefreshCw size={13} strokeWidth={2.5} />
+              Revise &amp; Resubmit
+            </button>
+          )}
         </div>
       </div>
     </div>
