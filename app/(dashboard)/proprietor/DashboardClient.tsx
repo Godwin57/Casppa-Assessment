@@ -305,9 +305,9 @@ export default function DashboardClient({ data }: { data: DashboardData }) {
                           <td className="px-6 py-4 whitespace-nowrap">
                             <span
                               className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                                assessment.type === "Assignment"
-                                  ? "bg-blue-50 text-blue-700"
-                                  : "bg-purple-50 text-purple-700"
+                                assessment.type === "CBT Exam"
+                                  ? "bg-red-50 text-red-700"
+                                  : "bg-blue-50 text-blue-700"
                               }`}
                             >
                               {assessment.type}

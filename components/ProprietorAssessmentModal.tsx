@@ -267,12 +267,12 @@ export default function ProprietorAssessmentModal({ assessmentId, onClose }: Pro
               <div className="flex items-center gap-2 flex-wrap mb-1">
                 <span
                   className={`text-[10px] font-bold px-2 py-0.5 rounded ${
-                    detail.type === "CBT"
-                      ? "bg-purple-100 text-purple-700"
+                    detail.type === "CBT Exam"
+                      ? "bg-red-100 text-red-700"
                       : "bg-blue-100 text-blue-700"
                   }`}
                 >
-                  {detail.type === "CBT" ? "CBT" : "Assignment"}
+                  {detail.type}
                 </span>
                 {pendingCount > 0 && (
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-100 text-amber-700">

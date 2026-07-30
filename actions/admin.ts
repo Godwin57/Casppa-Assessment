@@ -19,40 +19,60 @@ export async function getAcademicOversightData() {
           where: { status: "PENDING" },
         }),
 
-        // Overdue CBTs (Type is CBT and DueDate is in the past)
-        prisma.assignment.count({
-          where: {
-            type: "CBT",
-            dueDate: { lt: now },
-          },
+        // Overdue CBTs
+        prisma.cbtExam.count({
+          where: { dueDate: { lt: now } },
         }),
       ]);
 
-    // 2. Fetch Table Data: Recent Assessments with their Submission Counts
-    const recentAssessments = await prisma.assignment.findMany({
+    // 2. Fetch Table Data: Recent Assessments and CBTs
+    const recentAssignments = await prisma.assignment.findMany({
       take: 10,
-      orderBy: { dueDate: "desc" }, // Using dueDate since createdAt isn't in your schema
+      orderBy: { dueDate: "desc" },
       include: {
-        teacher: {
-          select: { name: true },
-        },
-        _count: {
-          select: { submissions: true },
-        },
+        teacher: { select: { name: true } },
+        _count: { select: { submissions: true } },
       },
     });
 
-    // 3. Map the data for the frontend table
-    const formattedTableData = recentAssessments.map((assessment) => {
-      const isOverdue = new Date(assessment.dueDate) < now;
+    const recentCbts = await prisma.cbtExam.findMany({
+      take: 10,
+      orderBy: { dueDate: "desc" },
+      include: {
+        teacher: { select: { name: true } },
+        _count: { select: { results: true } },
+      },
+    });
 
+    // 3. Merge, sort, and map the data for the frontend table
+    const combined = [
+      ...recentAssignments.map((a) => ({
+        id: a.id,
+        title: a.title,
+        dueDate: a.dueDate,
+        teacher: a.teacher?.name || "Unknown",
+        type: a.type === "CBT" ? "CBT Exam" : "Assignment",
+        completionRate: `${a._count.submissions} Submitted`,
+      })),
+      ...recentCbts.map((c) => ({
+        id: c.id,
+        title: c.title,
+        dueDate: c.dueDate,
+        teacher: c.teacher?.name || "Unknown",
+        type: "CBT Exam",
+        completionRate: `${c._count.results} Submitted`,
+      })),
+    ].sort((a, b) => b.dueDate.getTime() - a.dueDate.getTime()).slice(0, 10);
+
+    const formattedTableData = combined.map((item) => {
+      const isOverdue = new Date(item.dueDate) < now;
       return {
-        id: assessment.id,
-        title: assessment.title,
-        teacher: assessment.teacher?.name || "Unknown",
-        type: assessment.type === "CBT" ? "CBT" : "Assignment",
+        id: item.id,
+        title: item.title,
+        teacher: item.teacher,
+        type: item.type,
         status: isOverdue ? "Overdue" : "Active",
-        completionRate: `${assessment._count.submissions} Submitted`, // Modified to omit total count
+        completionRate: item.completionRate,
       };
     });
 
@@ -88,42 +108,88 @@ export async function getAssessmentDetail(assignmentId: string) {
       },
     });
 
-    if (!assignment) return { error: "Assignment not found." };
+    if (assignment) {
+      return {
+        assignment: {
+          id: assignment.id,
+          title: assignment.title,
+          description: assignment.description,
+          type: assignment.type,
+          dueDate: assignment.dueDate,
+          teacherName: assignment.teacher.name,
+          submissions: assignment.submissions.map((sub) => {
+            const nameParts = (sub.student?.name || "Unknown").split(" ");
+            const initials =
+              nameParts.length > 1
+                ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+                : nameParts[0][0].toUpperCase();
+            return {
+              id: sub.id,
+              studentName: sub.student?.name || "Unknown",
+              initials,
+              status: sub.status,
+              evaluation: sub.evaluation ?? null,
+              score: sub.score ?? null,
+              content: sub.content ?? null,
+              fileUrl: sub.fileUrl ?? null,
+              generalFeedback: sub.generalFeedback ?? null,
+              inlineComments: sub.inlineComments.map((c) => ({
+                id: c.id,
+                xCoordinate: c.xCoordinate,
+                yCoordinate: c.yCoordinate,
+                text: c.text,
+              })),
+            };
+          }),
+        },
+      };
+    }
 
-    return {
-      assignment: {
-        id: assignment.id,
-        title: assignment.title,
-        description: assignment.description,
-        type: assignment.type,
-        dueDate: assignment.dueDate,
-        teacherName: assignment.teacher.name,
-        submissions: assignment.submissions.map((sub) => {
-          const nameParts = (sub.student?.name || "Unknown").split(" ");
-          const initials =
-            nameParts.length > 1
-              ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
-              : nameParts[0][0].toUpperCase();
-          return {
-            id: sub.id,
-            studentName: sub.student?.name || "Unknown",
-            initials,
-            status: sub.status,
-            evaluation: sub.evaluation ?? null,
-            score: sub.score ?? null,
-            content: sub.content ?? null,
-            fileUrl: sub.fileUrl ?? null,
-            generalFeedback: sub.generalFeedback ?? null,
-            inlineComments: sub.inlineComments.map((c) => ({
-              id: c.id,
-              xCoordinate: c.xCoordinate,
-              yCoordinate: c.yCoordinate,
-              text: c.text,
-            })),
-          };
-        }),
+    // 2. If not found, try to fetch as a CBT Exam
+    const cbt = await prisma.cbtExam.findUnique({
+      where: { id: assignmentId },
+      include: {
+        teacher: { select: { name: true } },
+        results: {
+          include: { student: { select: { name: true } } },
+          orderBy: { student: { name: "asc" } },
+        },
       },
-    };
+    });
+
+    if (cbt) {
+      return {
+        assignment: {
+          id: cbt.id,
+          title: cbt.title,
+          description: cbt.description || "",
+          type: "CBT Exam",
+          dueDate: cbt.dueDate,
+          teacherName: cbt.teacher.name,
+          submissions: cbt.results.map((res) => {
+            const nameParts = (res.student?.name || "Unknown").split(" ");
+            const initials =
+              nameParts.length > 1
+                ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+                : nameParts[0][0].toUpperCase();
+            return {
+              id: res.id,
+              studentName: res.student?.name || "Unknown",
+              initials,
+              status: "MARKED", // CBTs are auto-graded
+              evaluation: null,
+              score: res.score,
+              content: null,
+              fileUrl: null,
+              generalFeedback: "Auto-graded via CBT",
+              inlineComments: [],
+            };
+          }),
+        },
+      };
+    }
+
+    return { error: "Assessment not found." };
   } catch (error) {
     console.error("Failed to fetch assessment detail:", error);
     return { error: "Failed to load assessment details." };
