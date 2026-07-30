@@ -121,7 +121,6 @@ export async function createAssignment(
     return { success: false, error: "Invalid due date." };
   }
 
-  // ── Database insert ──────────────────────────────────────────────────────
   try {
     // 1. Fetch our fixed mock teacher
     const teacher = await prisma.user.findUnique({

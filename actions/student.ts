@@ -53,6 +53,53 @@ export async function getStudentAssignments() {
     return { assignments: formattedAssignments };
   } catch (error) {
     console.error("Failed to fetch student assignments:", error);
-    return { assignments: [], error: "Failed to load assignments." };
+    return { assignments: [] };
+  }
+}
+
+export async function getStudentCbtExams() {
+  try {
+    const student = await prisma.user.findUnique({
+      where: { email: "jeremiah@caspaa.test" },
+    });
+
+    if (!student) {
+      return { exams: [] };
+    }
+
+    const exams = await prisma.cbtExam.findMany({
+      orderBy: { dueDate: "asc" },
+      include: {
+        teacher: { select: { name: true } },
+        questions: true,
+        results: {
+          where: { studentId: student.id },
+        },
+      },
+    });
+
+    const formattedExams = exams.map((exam) => {
+      const result = exam.results[0] || null;
+      return {
+        id: exam.id,
+        title: exam.title,
+        description: exam.description,
+        type: "CBT",
+        dueDate: exam.dueDate,
+        duration: exam.duration,
+        teacherName: exam.teacher.name,
+        hasSubmitted: !!result,
+        score: result ? result.score : null,
+        submittedAt: result ? result.submittedAt : null,
+        // Calculate max score
+        maxScore: exam.questions.reduce((sum, q) => sum + q.points, 0),
+        questions: exam.questions,
+      };
+    });
+
+    return { exams: formattedExams };
+  } catch (error) {
+    console.error("Failed to fetch student CBT exams:", error);
+    return { exams: [] };
   }
 }

@@ -29,6 +29,7 @@ import {
   type SubmissionItem,
 } from "@/components/AssignmentDetailModal";
 import CreateAssignmentModal from "@/components/CreateAssignmentModal";
+import CreateCbtModal from "@/components/CreateCbtModal";
 import { getAssignmentSubmissions } from "@/actions/teacher";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -164,15 +165,18 @@ function AssignmentCard({
 
 export default function TeacherClient({
   initialAssignments,
+  initialCbtExams,
   error,
 }: {
   initialAssignments: any[];
+  initialCbtExams: any[];
   error?: string;
 }) {
   const [activeTab, setActiveTab] = useState("Assignments");
   const [selectedAssignment, setSelectedAssignment] =
     useState<AssignmentDetail | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [isCreateCbtOpen, setIsCreateCbtOpen] = useState(false);
 
   async function handleCardClick(a: Assignment) {
     const { submissions } = await getAssignmentSubmissions(a.id);
@@ -312,11 +316,11 @@ export default function TeacherClient({
               </div>
               <button
                 id="new-assignment-btn"
-                onClick={() => setIsCreateOpen(true)}
+                onClick={() => activeTab === "CBT Exams" ? setIsCreateCbtOpen(true) : setIsCreateOpen(true)}
                 className="flex items-center gap-1.5 bg-[#1a2332] text-white text-[11px] font-semibold px-4 py-2.5 rounded-lg hover:bg-[#243047] active:bg-[#111b2a] transition-colors shrink-0 cursor-pointer"
               >
                 <Plus size={13} strokeWidth={2.5} />
-                New Assignment
+                {activeTab === "CBT Exams" ? "New CBT Exam" : "New Assignment"}
               </button>
             </div>
 
@@ -362,9 +366,21 @@ export default function TeacherClient({
             )}
 
             {activeTab === "CBT Exams" && (
-              <div className="flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
-                <BookOpen size={38} strokeWidth={1} />
-                <p className="text-sm">No CBT exams yet.</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                {initialCbtExams.length === 0 ? (
+                  <div className="col-span-full flex flex-col items-center justify-center py-24 text-gray-400 gap-3">
+                    <BookOpen size={38} strokeWidth={1} />
+                    <p className="text-sm">No CBT exams yet.</p>
+                  </div>
+                ) : (
+                  initialCbtExams.map((exam) => (
+                    <AssignmentCard
+                      key={exam.id}
+                      assignment={exam}
+                      onClick={() => console.log("CBT Exam Click", exam)}
+                    />
+                  ))
+                )}
               </div>
             )}
 
@@ -396,6 +412,12 @@ export default function TeacherClient({
       <CreateAssignmentModal
         isOpen={isCreateOpen}
         onClose={() => setIsCreateOpen(false)}
+      />
+
+      {/* ── Create CBT Modal ── */}
+      <CreateCbtModal
+        isOpen={isCreateCbtOpen}
+        onClose={() => setIsCreateCbtOpen(false)}
       />
     </>
   );

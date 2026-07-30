@@ -40,7 +40,43 @@ export async function getTeacherAssignments() {
     return { assignments: formattedAssignments };
   } catch (error) {
     console.error("Failed to fetch teacher assignments:", error);
-    return { assignments: [], error: "Failed to load assignments." };
+    return { assignments: [] };
+  }
+}
+
+export async function getTeacherCbtExams() {
+  try {
+    const teacher = await prisma.user.findUnique({
+      where: { email: "teacher@caspaa.test" },
+    });
+
+    if (!teacher) {
+      return { exams: [] };
+    }
+
+    const exams = await prisma.cbtExam.findMany({
+      where: { teacherId: teacher.id },
+      orderBy: { dueDate: "desc" },
+      include: {
+        _count: {
+          select: { results: true },
+        },
+      },
+    });
+
+    const formattedExams = exams.map((exam) => ({
+      id: exam.id,
+      title: exam.title,
+      description: exam.description,
+      type: "CBT",
+      dueDate: exam.dueDate,
+      submissionCount: exam._count.results,
+    }));
+
+    return { exams: formattedExams };
+  } catch (error) {
+    console.error("Failed to fetch teacher CBT exams:", error);
+    return { exams: [] };
   }
 }
 

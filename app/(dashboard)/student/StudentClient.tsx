@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import SubmitAssignmentModal from "@/components/SubmitAssignmentModal";
 import FeedbackReviewModal from "@/components/FeedbackReviewModal";
+import TakeCbtModal from "@/components/TakeCbtModal";
 
 export interface StudentAssignment {
   id: string;
@@ -42,9 +43,11 @@ export interface StudentAssignment {
 
 export default function StudentClient({
   initialAssignments,
+  initialCbtExams,
   error,
 }: {
   initialAssignments: StudentAssignment[];
+  initialCbtExams: any[];
   error?: string;
 }) {
   // Modal for reviewing feedback on a RETURNED or MARKED assignment
@@ -74,8 +77,12 @@ export default function StudentClient({
     fileUrl?: string | null;
   } | null>(null);
 
+  // Modal for taking a CBT
+  const [selectedCbtId, setSelectedCbtId] = useState<string | null>(null);
+
   const [showToast, setShowToast] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("Assignments");
 
   const handleSuccess = () => {
     setShowToast(true);
@@ -230,125 +237,109 @@ export default function StudentClient({
 
             {/* Tabs */}
             <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-6">
-              <div className="flex items-center gap-2 bg-[#1a2332] text-white px-3 py-1.5 md:px-4 md:py-2 rounded-lg cursor-pointer">
-                <span className="text-[11px] md:text-[12px] font-semibold">
-                  Assignments
+              <div 
+                onClick={() => setActiveTab("Assignments")}
+                className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg cursor-pointer transition-colors ${
+                  activeTab === "Assignments" 
+                    ? "bg-[#1a2332] text-white" 
+                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <span className="text-[11px] md:text-[12px] font-semibold">Assignments</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "Assignments" ? "bg-white text-[#1a2332]" : "bg-gray-100 text-gray-600"
+                }`}>
+                  {initialAssignments.length}
                 </span>
-                <span className="bg-white text-[#1a2332] text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {initialAssignments.filter(a => a.type === "FILE_UPLOAD").length || 0}
+              </div>
+              <div 
+                onClick={() => setActiveTab("CBT Exams")}
+                className={`flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-lg cursor-pointer transition-colors ${
+                  activeTab === "CBT Exams" 
+                    ? "bg-[#1a2332] text-white" 
+                    : "bg-white border border-gray-200 text-gray-600 hover:bg-gray-50"
+                }`}
+              >
+                <span className="text-[11px] md:text-[12px] font-semibold">CBT Exams</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${
+                  activeTab === "CBT Exams" ? "bg-white text-[#1a2332]" : "bg-red-500 text-white"
+                }`}>
+                  {initialCbtExams.length}
                 </span>
               </div>
               <div className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-3 py-1.5 md:px-4 md:py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <span className="text-[11px] md:text-[12px] font-semibold">
-                  CBT Exams
-                </span>
-                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  {initialAssignments.filter(a => a.type === "CBT").length || 0}
-                </span>
-              </div>
-              <div className="flex items-center gap-2 bg-white border border-gray-200 text-gray-600 px-3 py-1.5 md:px-4 md:py-2 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
-                <span className="text-[11px] md:text-[12px] font-semibold">
-                  Quick Tests
-                </span>
-                <span className="bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                  1
+                <span className="text-[11px] md:text-[12px] font-semibold">Quick Tests</span>
+                <span className="bg-gray-100 text-gray-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">
+                  0
                 </span>
               </div>
             </div>
 
             {/* Assignment List */}
-            <div className="space-y-4">
-              {error && (
-                <div className="p-4 text-red-500 bg-red-50 rounded-lg">
-                  {error}
-                </div>
-              )}
-              {initialAssignments.length === 0 ? (
-                <div className="p-8 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl shadow-sm">
-                  No assignments found.
-                </div>
-              ) : (
-                initialAssignments.map((assignment) => (
-                  <div
-                    key={assignment.id}
-                    className="bg-white border border-gray-100 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-start justify-between shadow-sm gap-4 sm:gap-0"
-                  >
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                        <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-1 rounded-full">
-                          General
-                        </span>
-                        <span
-                          className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
-                            assignment.submissionStatus === "RETURNED"
-                              ? "bg-orange-100 text-orange-700"
+            {activeTab === "Assignments" && (
+              <div className="space-y-4">
+                {error && (
+                  <div className="p-4 text-red-500 bg-red-50 rounded-lg">
+                    {error}
+                  </div>
+                )}
+                {initialAssignments.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl shadow-sm">
+                    No assignments found.
+                  </div>
+                ) : (
+                  initialAssignments.map((assignment) => (
+                    <div
+                      key={assignment.id}
+                      className="bg-white border border-gray-100 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-start justify-between shadow-sm gap-4 sm:gap-0"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                          <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-1 rounded-full">
+                            General
+                          </span>
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
+                              assignment.submissionStatus === "RETURNED"
+                                ? "bg-orange-100 text-orange-700"
+                                : assignment.submissionStatus === "MARKED"
+                                ? "bg-green-100 text-green-700"
+                                : assignment.hasSubmitted
+                                ? "bg-blue-100 text-blue-700"
+                                : "bg-orange-100 text-orange-700"
+                            }`}
+                          >
+                            {assignment.submissionStatus === "RETURNED"
+                              ? "Returned for Revision"
                               : assignment.submissionStatus === "MARKED"
-                              ? "bg-green-100 text-green-700"
+                              ? `Graded${assignment.evaluation ? ` · ${assignment.evaluation.replace("_", " ")}` : ""}`
                               : assignment.hasSubmitted
-                              ? "bg-blue-100 text-blue-700"
-                              : "bg-orange-100 text-orange-700"
-                          }`}
-                        >
-                          {assignment.submissionStatus === "RETURNED"
-                            ? "Returned for Revision"
-                            : assignment.submissionStatus === "MARKED"
-                            ? `Graded${assignment.evaluation ? ` · ${assignment.evaluation.replace("_", " ")}` : ""}`
-                            : assignment.hasSubmitted
-                            ? "Submitted"
-                            : "To do"}
-                        </span>
+                              ? "Submitted"
+                              : "To do"}
+                          </span>
+                        </div>
+                        <h3 className="text-[14px] md:text-[15px] font-bold text-[#1a2332] mb-1">
+                          {assignment.title}
+                        </h3>
+                        <p className="text-[12px] md:text-[13px] text-gray-500 mb-2.5 line-clamp-2 max-w-2xl">
+                          {assignment.description || "No description provided."}
+                        </p>
+                        <p className="text-[10px] md:text-[11px] text-gray-400 font-medium">
+                          Due{" "}
+                          {new Date(assignment.dueDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}{" "}
+                          &middot; {assignment.teacherName}
+                        </p>
                       </div>
-                      <h3 className="text-[14px] md:text-[15px] font-bold text-[#1a2332] mb-1">
-                        {assignment.title}
-                      </h3>
-                      <p className="text-[12px] md:text-[13px] text-gray-500 mb-2.5 line-clamp-2 max-w-2xl">
-                        {assignment.description || "No description provided."}
-                      </p>
-                      <p className="text-[10px] md:text-[11px] text-gray-400 font-medium">
-                        Due{" "}
-                        {new Date(assignment.dueDate).toLocaleDateString(
-                          "en-US",
-                          {
-                            day: "numeric",
-                            month: "long",
-                            year: "numeric",
-                          }
-                        )}{" "}
-                        &middot; {assignment.teacherName}
-                      </p>
-                    </div>
-                    <div className="sm:pt-2 flex flex-col sm:items-end w-full sm:w-auto gap-1.5">
-                      {assignment.submissionStatus === "RETURNED" ? (
-                        /* RETURNED: View Details opens feedback review */
-                        <button
-                          onClick={() =>
-                            setFeedbackAssignment({
-                              id: assignment.id,
-                              title: assignment.title,
-                              subject: "General",
-                              dueDate: formattedDate(assignment.dueDate),
-                              submissionId: assignment.submissionId,
-                              generalFeedback: assignment.generalFeedback,
-                              studentNote: assignment.studentNote,
-                              fileUrl: assignment.fileUrl,
-                              score: assignment.score,
-                              evaluation: assignment.evaluation,
-                            })
-                          }
-                          className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-orange-500 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-orange-600 transition-colors shadow-sm"
-                        >
-                          <Eye size={14} strokeWidth={2.5} />
-                          View Details
-                        </button>
-                      ) : assignment.submissionStatus === "MARKED" ? (
-                        /* MARKED: Show score badge + View Feedback button */
-                        <>
-                          {assignment.score !== null && (
-                            <span className="text-[13px] font-bold text-green-700">
-                              {assignment.score}
-                              <span className="text-[11px] font-medium text-gray-400">/100</span>
-                            </span>
-                          )}
+                      <div className="sm:pt-2 flex flex-col sm:items-end w-full sm:w-auto gap-1.5">
+                        {assignment.submissionStatus === "RETURNED" ? (
+                          /* RETURNED: View Details opens feedback review */
                           <button
                             onClick={() =>
                               setFeedbackAssignment({
@@ -364,39 +355,144 @@ export default function StudentClient({
                                 evaluation: assignment.evaluation,
                               })
                             }
-                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-green-600 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-green-700 transition-colors shadow-sm"
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-orange-500 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-orange-600 transition-colors shadow-sm"
                           >
                             <Eye size={14} strokeWidth={2.5} />
-                            View Feedback
+                            View Details
                           </button>
-                        </>
-                      ) : assignment.hasSubmitted ? (
-                        /* PENDING: submitted, waiting for teacher */
-                        <span className="text-[11px] md:text-[12px] text-gray-400 font-medium">
-                          Awaiting grade
-                        </span>
-                      ) : (
-                        /* NOT YET SUBMITTED: Show Submit button */
-                        <button
-                          onClick={() =>
-                            setSelectedAssignment({
-                              id: assignment.id,
-                              title: assignment.title,
-                              subject: "General",
-                              dueDate: formattedDate(assignment.dueDate),
-                            })
-                          }
-                          className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-[#1a2332] text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-[#243047] transition-colors shadow-sm"
-                        >
-                          <Upload size={14} strokeWidth={2.5} />
-                          Submit
-                        </button>
-                      )}
+                        ) : assignment.submissionStatus === "MARKED" ? (
+                          /* MARKED: Show score badge + View Feedback button */
+                          <>
+                            {assignment.score !== null && (
+                              <span className="text-[13px] font-bold text-green-700">
+                                {assignment.score}
+                                <span className="text-[11px] font-medium text-gray-400">/100</span>
+                              </span>
+                            )}
+                            <button
+                              onClick={() =>
+                                setFeedbackAssignment({
+                                  id: assignment.id,
+                                  title: assignment.title,
+                                  subject: "General",
+                                  dueDate: formattedDate(assignment.dueDate),
+                                  submissionId: assignment.submissionId,
+                                  generalFeedback: assignment.generalFeedback,
+                                  studentNote: assignment.studentNote,
+                                  fileUrl: assignment.fileUrl,
+                                  score: assignment.score,
+                                  evaluation: assignment.evaluation,
+                                })
+                              }
+                              className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-green-600 text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-green-700 transition-colors shadow-sm"
+                            >
+                              <Eye size={14} strokeWidth={2.5} />
+                              View Feedback
+                            </button>
+                          </>
+                        ) : assignment.hasSubmitted ? (
+                          /* PENDING: submitted, waiting for teacher */
+                          <span className="text-[11px] md:text-[12px] text-gray-400 font-medium">
+                            Awaiting grade
+                          </span>
+                        ) : (
+                          /* NOT YET SUBMITTED: Show Submit button */
+                          <button
+                            onClick={() =>
+                              setSelectedAssignment({
+                                id: assignment.id,
+                                title: assignment.title,
+                                subject: "General",
+                                dueDate: formattedDate(assignment.dueDate),
+                              })
+                            }
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-[#1a2332] text-white px-4 py-2 rounded-lg text-[12px] font-semibold hover:bg-[#243047] transition-colors shadow-sm"
+                          >
+                            <Upload size={14} strokeWidth={2.5} />
+                            Submit
+                          </button>
+                        )}
+                      </div>
                     </div>
+                  ))
+                )}
+              </div>
+            )}
+
+            {activeTab === "CBT Exams" && (
+              <div className="space-y-4">
+                {initialCbtExams.length === 0 ? (
+                  <div className="p-8 text-center text-gray-500 bg-white border border-gray-100 rounded-2xl shadow-sm flex flex-col items-center gap-3 py-16">
+                    <BookOpen size={40} className="text-gray-300" />
+                    <p>No CBT Exams found.</p>
                   </div>
-                ))
-              )}
-            </div>
+                ) : (
+                  initialCbtExams.map((exam) => (
+                    <div
+                      key={exam.id}
+                      className="bg-white border border-gray-100 rounded-2xl p-4 md:p-5 flex flex-col sm:flex-row sm:items-start justify-between shadow-sm gap-4 sm:gap-0"
+                    >
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                          <span className="bg-gray-100 text-gray-600 text-[10px] font-semibold px-2 py-1 rounded-full">
+                            CBT Exam
+                          </span>
+                          <span
+                            className={`text-[10px] font-semibold px-2 py-1 rounded-full ${
+                              exam.hasSubmitted
+                                ? "bg-green-100 text-green-700"
+                                : "bg-orange-100 text-orange-700"
+                            }`}
+                          >
+                            {exam.hasSubmitted ? "Completed" : "To do"}
+                          </span>
+                          <span className="bg-blue-50 text-blue-700 text-[10px] font-semibold px-2 py-1 rounded-full flex items-center gap-1">
+                             <Check size={10} strokeWidth={2} /> Auto-Graded
+                          </span>
+                        </div>
+                        <h3 className="text-[14px] md:text-[15px] font-bold text-[#1a2332] mb-1">
+                          {exam.title}
+                        </h3>
+                        <p className="text-[12px] md:text-[13px] text-gray-500 mb-2.5 line-clamp-2 max-w-2xl">
+                          {exam.description || "No description provided."}
+                        </p>
+                        <p className="text-[10px] md:text-[11px] text-gray-400 font-medium">
+                          Due{" "}
+                          {new Date(exam.dueDate).toLocaleDateString(
+                            "en-US",
+                            {
+                              day: "numeric",
+                              month: "long",
+                              year: "numeric",
+                            }
+                          )}{" "}
+                          &middot; {exam.duration} mins &middot; {exam.teacherName}
+                        </p>
+                      </div>
+                      <div className="sm:pt-2 flex flex-col sm:items-end w-full sm:w-auto gap-1.5">
+                        {exam.hasSubmitted ? (
+                          <div className="bg-green-50 border border-green-100 px-4 py-2 rounded-xl text-center shadow-sm w-full sm:w-auto">
+                            <p className="text-[10px] font-bold text-green-700 uppercase tracking-wider mb-0.5">Final Score</p>
+                            <span className="text-xl font-bold text-[#1a2332]">
+                              {exam.score}
+                              <span className="text-[13px] font-medium text-gray-400">/{exam.maxScore}</span>
+                            </span>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setSelectedCbtId(exam.id)}
+                            className="flex-1 sm:flex-none flex justify-center items-center gap-1.5 bg-blue-600 text-white px-6 py-2.5 rounded-lg text-[13px] font-bold hover:bg-blue-700 transition-colors shadow-sm"
+                          >
+                            <BookOpen size={14} strokeWidth={2.5} />
+                            Take Exam
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </main>
@@ -434,6 +530,19 @@ export default function StudentClient({
           onClose={() => setSelectedAssignment(null)}
           assignment={selectedAssignment}
           onSuccess={handleSuccess}
+        />
+      )}
+
+      {/* Take CBT Modal */}
+      {selectedCbtId && (
+        <TakeCbtModal
+          isOpen={true}
+          onClose={() => setSelectedCbtId(null)}
+          examId={selectedCbtId}
+          onSuccess={() => {
+            // Toast or reload if needed. The modal handles success UI itself,
+            // but closing it will now show the updated data because of revalidatePath
+          }}
         />
       )}
     </div>
