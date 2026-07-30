@@ -98,6 +98,9 @@ const mockDetailMap: Record<
         isPending: true,
         studentNote: "the work is done",
         fileName: "My Assignment.pdf",
+        // Added the image URL here so it passes down to the Marking View!
+        fileUrl:
+          "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=1471&auto=format&fit=crop",
       },
       {
         id: "sub-002",
@@ -111,6 +114,9 @@ const mockDetailMap: Record<
         maxScore: 100,
         evaluation: "NEEDS_REVISION",
         awaitingResubmission: true,
+        // Added it here for Ade's submission as well
+        fileUrl:
+          "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=1471&auto=format&fit=crop",
         teacherFeedback:
           "Good attempt Ade! You made a sign error in question 7 — when you move a term across the equals sign the sign must flip. Also, you need to show all working steps for questions 11 and 12 — answers alone will not get full marks. Please revise and resubmit.",
       },

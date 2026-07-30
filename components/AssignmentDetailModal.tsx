@@ -16,6 +16,7 @@ export interface SubmissionItem {
   isPending: boolean;
   studentNote: string;
   fileName: string;
+  fileUrl?: string; // <-- ADDED THIS so the interface accepts the image link
   score?: number;
   maxScore?: number;
   evaluation?: EvaluationStatus;
@@ -64,6 +65,9 @@ const mockAssignment: AssignmentDetail = {
       isPending: true,
       studentNote: "the work is done",
       fileName: "My Assignment.pdf",
+      // Added test image so you can test the pinning logic immediately
+      fileUrl:
+        "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=1471&auto=format&fit=crop",
     },
     {
       id: "sub-002",
@@ -73,6 +77,8 @@ const mockAssignment: AssignmentDetail = {
       isPending: false,
       studentNote: "Please see my working in the attached image.",
       fileName: "algebra_working.svg",
+      fileUrl:
+        "https://images.unsplash.com/photo-1596495578065-6e0763fa1178?q=80&w=1471&auto=format&fit=crop",
       score: 68,
       maxScore: 100,
       evaluation: "NEEDS_REVISION",
@@ -195,6 +201,7 @@ export function AssignmentDetailModal({
 }: Props) {
   const [markingSub, setMarkingSub] = useState<SubmissionItem | null>(null);
   const pendingCount = assignment.submissions.filter((s) => s.isPending).length;
+
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4"
@@ -292,16 +299,19 @@ export function AssignmentDetailModal({
 
       {/* ── Full Marking View (stacks on top) ── */}
       <FullMarkingView
+        submissionId={markingSub?.id ?? ""}
         isOpen={!!markingSub}
         onClose={() => setMarkingSub(null)}
         studentName={markingSub?.name ?? ""}
         studentInitials={markingSub?.initials ?? ""}
         submittedAt={markingSub?.submittedAt ?? ""}
         assignmentTitle={assignment.title}
+        fileUrl={markingSub?.fileUrl} // <-- PASSED THE PROP HERE
         totalSubmissions={assignment.totalStudents}
         currentIndex={
           markingSub
-            ? assignment.submissions.findIndex((s) => s.id === markingSub.id) + 1
+            ? assignment.submissions.findIndex((s) => s.id === markingSub.id) +
+              1
             : 1
         }
       />
