@@ -43,7 +43,7 @@ Follow these instructions to set up the project locally for development and test
 ### Installation
 
 1. **Clone the repository**
-   `git clone <your-repository-url>`
+   `git clone https://github.com/Godwin57/Casppa-Assessment`
    `cd caspaa`
 
 2. **Install dependencies**
