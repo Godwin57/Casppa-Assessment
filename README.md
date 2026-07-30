@@ -1,36 +1,76 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CASPAA - Comprehensive Assessment Platform
 
-## Getting Started
+A full-stack educational management platform designed to streamline assignments, Computer-Based Testing (CBT), and school-wide academic oversight. CASPAA provides dedicated workflows for teachers, students, and school proprietors to facilitate seamless academic operations.
 
-First, run the development server:
+## 🚀 Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### 👨‍🏫 Teacher Portal
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Assignment Management:** Create and distribute assignments to specific classes.
+- **Advanced Grading Workflow:** Review student submissions with interactive, coordinate-based inline pinning for image feedback.
+- **CBT Exam Builder:** Construct digital assessments featuring Multiple Choice (MCQ), True/False, and Short Answer question types.
+- **Hybrid Grading System:** Instant auto-grading for MCQ and True/False questions, paired with a dedicated manual review interface for Short Answer questions.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 🎓 Student Portal
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Assessment Dashboard:** View active, pending, and graded assignments and CBT exams.
+- **Interactive CBT Execution:** Take timed digital exams with immediate score feedback for auto-graded sections.
+- **Feedback Iteration:** Review detailed inline feedback from teachers and submit revisions seamlessly.
 
-## Learn More
+### 🏢 Proprietor Oversight
 
-To learn more about Next.js, take a look at the following resources:
+- **School-Wide Visibility:** Monitor all active assessments and CBT exams across the entire institution.
+- **Submission Tracking:** Track completion rates, grading statuses, and student performance metrics from a high-level administrative view.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 💻 Tech Stack
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **Framework:** [Next.js](https://nextjs.org/) (App Router, Turbopack)
+- **Language:** TypeScript
+- **Database ORM:** [Prisma](https://www.prisma.io/)
+- **Styling:** Tailwind CSS
+- **Architecture:** React Server Components (RSC) & Server Actions
 
-## Deploy on Vercel
+## 🛠️ Getting Started
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Follow these instructions to set up the project locally for development and testing.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Prerequisites
+
+- Node.js (v18.17 or higher)
+- npm, yarn, or pnpm
+- A running PostgreSQL database instance
+
+### Installation
+
+1. **Clone the repository**
+   `git clone <your-repository-url>`
+   `cd caspaa`
+
+2. **Install dependencies**
+   `npm install`
+
+3. **Configure Environment Variables**
+   Create a `.env` file in the root directory and add your database connection string and any other required secrets:
+   `DATABASE_URL="postgresql://user:password@localhost:5432/caspaa_db?schema=public"`
+
+4. **Database Setup**
+   Push the schema to your database and generate the Prisma Client:
+   `npx prisma db push`
+   `npx prisma generate`
+
+5. **Start the Development Server**
+   `npm run dev`
+
+6. **Access the Application**
+   Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+## 📂 Project Structure Overview
+
+- `app/(dashboard)/`: Contains the role-based dashboard layouts and views (Teacher, Student, Proprietor).
+- `lib/prisma.ts`: Prisma client instantiation.
+- `actions/`: Next.js Server Actions handling database mutations and complex business logic (e.g., CBT auto-grading, assignment submissions).
+- `prisma/schema.prisma`: Database schema definitions for Users, Classes, Assignments, CbtExams, CbtQuestions, and Submissions.
+
+## 📄 License
+
+This project is proprietary and confidential.
