@@ -19,175 +19,97 @@ import {
   Search,
   Bell,
   Wifi,
-  TrendingUp,
-  Download,
-  Upload,
-  Plus,
-  ChevronDown,
-  Edit,
-  MoreVertical,
   Menu,
-  X
+  X,
+  FileText,
+  Clock,
+  AlertCircle
 } from "lucide-react";
-import { AddStudentModal } from "@/components/AddStudentModal";
 
 // --- Mock Data ---
 
-interface Student {
+interface Assessment {
   id: string;
-  initials: string;
-  name: string;
-  details: string;
-  admissionNo: string;
+  title: string;
   className: string;
-  parent: string;
-  feeStatus: "Paid" | "Partial" | "Outstanding";
-  activities?: number;
+  teacher: string;
+  subject: string;
+  type: "Assignment" | "CBT";
+  status: "Active" | "Overdue" | "Completed";
+  completionRate: string;
 }
 
-const allStudents: Student[] = [
+const assessmentsData: Assessment[] = [
   {
     id: "1",
-    initials: "CO",
-    name: "Chiamaka Okafor",
-    details: "Female · 10 yrs · active",
-    admissionNo: "BL/2024/001",
-    className: "Primary 3",
-    parent: "Mr. Tunde Okafor",
-    feeStatus: "Paid",
-    activities: 2,
+    title: "Algebra Quiz",
+    className: "JSS 1A",
+    teacher: "Mr. Okafor",
+    subject: "Mathematics",
+    type: "CBT",
+    status: "Active",
+    completionRate: "24/30 Submitted",
   },
   {
     id: "2",
-    initials: "TO",
-    name: "Tobi Okafor",
-    details: "Male · 12 yrs · active",
-    admissionNo: "BL/2024/002",
-    className: "JSS 1",
-    parent: "Mr. Tunde Okafor",
-    feeStatus: "Partial",
-    activities: 2,
+    title: "Creative Writing",
+    className: "Primary 4",
+    teacher: "Mrs. Bello",
+    subject: "English",
+    type: "Assignment",
+    status: "Active",
+    completionRate: "18/25 Submitted",
   },
   {
     id: "3",
-    initials: "ZB",
-    name: "Zainab Bello",
-    details: "Female · 14 yrs · active",
-    admissionNo: "BL/2024/003",
-    className: "JSS 2",
-    parent: "Mrs. Aisha Bello",
-    feeStatus: "Outstanding",
+    title: "Mid-Term Physics",
+    className: "SSS 2",
+    teacher: "Dr. Eze",
+    subject: "Physics",
+    type: "CBT",
+    status: "Overdue",
+    completionRate: "42/45 Submitted",
   },
   {
     id: "4",
-    initials: "YB",
-    name: "Yusuf Bello",
-    details: "Male · 9 yrs · active",
-    admissionNo: "BL/2024/004",
-    className: "Primary 2",
-    parent: "Mrs. Aisha Bello",
-    feeStatus: "Paid",
+    title: "Photosynthesis Essay",
+    className: "JSS 3",
+    teacher: "Ms. Lawal",
+    subject: "Basic Science",
+    type: "Assignment",
+    status: "Completed",
+    completionRate: "35/35 Submitted",
   },
   {
     id: "5",
-    initials: "DE",
-    name: "Daniel Eze",
-    details: "Male · 7 yrs · active",
-    admissionNo: "BL/2024/005",
-    className: "Primary 1",
-    parent: "Mr. Chinedu Eze",
-    feeStatus: "Partial",
+    title: "French Vocabulary",
+    className: "Primary 6",
+    teacher: "Mr. Dubois",
+    subject: "French",
+    type: "CBT",
+    status: "Active",
+    completionRate: "10/20 Submitted",
   },
-  {
-    id: "6",
-    initials: "NE",
-    name: "Ngozi Eze",
-    details: "Female · 10 yrs · active",
-    admissionNo: "BL/2024/006",
-    className: "Primary 3",
-    parent: "Mr. Chinedu Eze",
-    feeStatus: "Outstanding",
-  },
-  {
-    id: "7",
-    initials: "IM",
-    name: "Ibrahim Musa",
-    details: "Male · 6 yrs · active",
-    admissionNo: "BL/2024/007",
-    className: "Primary 1",
-    parent: "Mrs. Hauwa Musa",
-    feeStatus: "Paid",
-  },
-  {
-    id: "8",
-    initials: "FM",
-    name: "Fatima Musa",
-    details: "Female · 17 yrs · active",
-    admissionNo: "BL/2024/008",
-    className: "SSS 1",
-    parent: "Mrs. Hauwa Musa",
-    feeStatus: "Partial",
-    activities: 1,
-  },
-  {
-    id: "9",
-    initials: "AL",
-    name: "Ade Lawal",
-    details: "Male · 12 yrs · active",
-    admissionNo: "BL/2024/009",
-    className: "JSS 1",
-    parent: "Mr. Kunle Lawal",
-    feeStatus: "Outstanding",
-    activities: 1,
-  },
-  {
-    id: "10",
-    initials: "BL",
-    name: "Bisi Lawal",
-    details: "Female · 8 yrs · active",
-    admissionNo: "BL/2024/010",
-    className: "Primary 2",
-    parent: "Mr. Kunle Lawal",
-    feeStatus: "Paid",
-  },
-];
-
-const newEnrollments: Student[] = [
-  {
-    id: "1",
-    initials: "JB",
-    name: "Jeremiah Balogun",
-    details: "Male · 16 yrs · active",
-    admissionNo: "BL/2024/022",
-    className: "Primary 1",
-    parent: "Mr. Tunde Okafor",
-    feeStatus: "Outstanding",
-    activities: 3,
-  }
 ];
 
 const sidebarLinks = [
-  { name: "Dashboard", icon: LayoutDashboard },
-  { name: "Students", icon: Users, active: true },
-  { name: "Admissions", icon: UserPlus },
-  { name: "Front Desk", icon: BellRing },
-  { name: "Staff & HR", icon: Briefcase },
-  { name: "Academic", icon: BookOpen },
-  { name: "Finance", icon: Coins },
-  { name: "School Store", icon: Store },
-  { name: "Reports", icon: BarChart2 },
-  { name: "Operations", icon: Settings },
-  { name: "Communications", icon: MessageSquare },
-  { name: "Calendar", icon: CalendarIcon },
-  { name: "Inter House Points", icon: Trophy },
+  { name: "Dashboard", icon: LayoutDashboard, active: true, href: "/proprietor" },
+  { name: "Students", icon: Users, href: "/proprietor/students" },
+  { name: "Admissions", icon: UserPlus, href: "#" },
+  { name: "Front Desk", icon: BellRing, href: "#" },
+  { name: "Staff & HR", icon: Briefcase, href: "#" },
+  { name: "Academic", icon: BookOpen, href: "#" },
+  { name: "Finance", icon: Coins, href: "#" },
+  { name: "School Store", icon: Store, href: "#" },
+  { name: "Reports", icon: BarChart2, href: "#" },
+  { name: "Operations", icon: Settings, href: "#" },
+  { name: "Communications", icon: MessageSquare, href: "#" },
+  { name: "Calendar", icon: CalendarIcon, href: "#" },
+  { name: "Inter House Points", icon: Trophy, href: "#" },
 ];
 
-export default function ProprietorDashboard() {
+export default function ProprietorDashboardHome() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [addStudentOpen, setAddStudentOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('New Enrollment');
-
-  const currentStudentsData = activeTab === 'Students' ? allStudents : activeTab === 'New Enrollment' ? newEnrollments : [];
 
   return (
     <div className="flex h-screen bg-[#f8fafc] font-sans text-gray-900 overflow-hidden">
@@ -219,11 +141,11 @@ export default function ProprietorDashboard() {
           </button>
         </div>
 
-        <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-0.5 mt-2">
+        <nav className="flex-1 overflow-y-auto px-4 py-2 space-y-0.5 mt-2 custom-scrollbar">
           {sidebarLinks.map((link) => (
             <a
               key={link.name}
-              href="#"
+              href={link.href}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13px] font-medium transition-colors ${
                 link.active 
                   ? "bg-gray-100 text-[#1a2332]" 
@@ -253,7 +175,7 @@ export default function ProprietorDashboard() {
             <button className="lg:hidden text-gray-500" onClick={() => setSidebarOpen(true)}>
               <Menu size={20} />
             </button>
-            <h1 className="text-lg font-bold text-[#1a2332] hidden sm:block">Students</h1>
+            <h1 className="text-lg font-bold text-[#1a2332] hidden sm:block">Dashboard</h1>
             
             <div className="relative w-full max-w-md ml-0 sm:ml-8 hidden md:block">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
@@ -294,223 +216,108 @@ export default function ProprietorDashboard() {
           <div className="p-4 sm:p-6 lg:p-8 max-w-[1200px] mx-auto">
             
             {/* Page Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-              <div>
-                <h2 className="text-2xl font-bold text-[#1a2332]">Students</h2>
-                <p className="text-[13px] text-gray-500 mt-1">Students, admissions, alumni, enrollment trends</p>
-              </div>
+            <div className="mb-8">
+              <h2 className="text-2xl font-bold text-[#1a2332]">Dashboard - Academic Oversight</h2>
+              <p className="text-[13px] text-gray-500 mt-1">Monitor school-wide active assessments, review pipelines, and completion rates.</p>
+            </div>
+
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               
-              <div className="flex flex-wrap items-center gap-2">
-                <button className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <TrendingUp size={14} />
-                  Bulk Promote
-                </button>
-                <button className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Download size={14} />
-                  Student Report
-                </button>
-                <button className="inline-flex items-center gap-1.5 px-3.5 py-2 text-[12px] font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
-                  <Upload size={14} />
-                  Bulk Upload
-                </button>
-                <button 
-                  onClick={() => setAddStudentOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 text-[12px] font-semibold text-white bg-[#1a2332] hover:bg-[#243047] rounded-lg transition-colors shadow-sm"
-                >
-                  <Plus size={14} />
-                  Add Student
-                </button>
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                  <FileText size={22} />
+                </div>
+                <div>
+                  <p className="text-[12px] font-medium text-gray-500 mb-0.5">Total Active Assessments</p>
+                  <p className="text-2xl font-bold text-[#1a2332]">42</p>
+                </div>
               </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+                  <Clock size={22} />
+                </div>
+                <div>
+                  <p className="text-[12px] font-medium text-gray-500 mb-0.5">Submissions Pending Review</p>
+                  <p className="text-2xl font-bold text-[#1a2332]">156</p>
+                </div>
+              </div>
+
+              <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-red-50 text-red-600 flex items-center justify-center shrink-0">
+                  <AlertCircle size={22} />
+                </div>
+                <div>
+                  <p className="text-[12px] font-medium text-gray-500 mb-0.5">Overdue CBTs</p>
+                  <p className="text-2xl font-bold text-[#1a2332]">3</p>
+                </div>
+              </div>
+
             </div>
-
-            {/* Tabs */}
-            <div className="border-b border-gray-200 mb-6 flex overflow-x-auto hide-scrollbar">
-              <nav className="flex space-x-6 px-1">
-                <button 
-                  onClick={() => setActiveTab('Students')}
-                  className={`pb-3 text-[13px] whitespace-nowrap ${
-                    activeTab === 'Students' 
-                      ? "font-semibold text-[#10b981] border-b-2 border-[#10b981]" 
-                      : "font-medium text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  Students
-                </button>
-                <button 
-                  onClick={() => setActiveTab('New Enrollment')}
-                  className={`pb-3 text-[13px] whitespace-nowrap ${
-                    activeTab === 'New Enrollment' 
-                      ? "font-semibold text-[#10b981] border-b-2 border-[#10b981]" 
-                      : "font-medium text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  New Enrollment
-                </button>
-                <button className="pb-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                  Returning
-                </button>
-                <button className="pb-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap flex items-center gap-1.5">
-                  Admissions <span className="bg-red-100 text-red-600 text-[10px] font-bold px-1.5 py-0.5 rounded-full">4</span>
-                </button>
-                <button className="pb-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                  Suspensions
-                </button>
-                <button className="pb-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                  Alumni
-                </button>
-                <button className="pb-3 text-[13px] font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap">
-                  Analytics
-                </button>
-              </nav>
-            </div>
-
-            {/* Gender Split Card */}
-            {activeTab === 'Students' && (
-              <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[13px] font-bold text-[#1a2332]">Gender Split</h3>
-                  <div className="flex items-center gap-4 text-[12px] font-medium">
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-[#1a2332]"></div>
-                      <span className="text-[#1a2332] font-bold">5</span> boys (50%)
-                    </div>
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                      <span className="text-[#1a2332] font-bold">5</span> girls (50%)
-                    </div>
-                  </div>
-                </div>
-                <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-[#1a2332] w-1/2 border-r-2 border-white"></div>
-                  <div className="h-full bg-gray-400 w-1/2"></div>
-                </div>
-              </div>
-            )}
-
-            {activeTab === 'New Enrollment' && (
-              <div className="bg-white border border-gray-200 rounded-xl p-5 mb-6 shadow-sm">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-[13px] font-bold text-[#1a2332]">Gender Split</h3>
-                  <div className="flex items-center gap-4 text-[12px] font-medium">
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-[#1a2332]"></div>
-                      <span className="text-[#1a2332] font-bold">1</span> boys (100%)
-                    </div>
-                    <div className="flex items-center gap-1.5 text-gray-500">
-                      <div className="w-2 h-2 rounded-full bg-gray-400"></div>
-                      <span className="text-[#1a2332] font-bold">0</span> girls (0%)
-                    </div>
-                  </div>
-                </div>
-                <div className="h-2.5 w-full bg-gray-200 rounded-full overflow-hidden flex">
-                  <div className="h-full bg-[#1a2332] w-full"></div>
-                  <div className="h-full bg-gray-400 w-0"></div>
-                </div>
-              </div>
-            )}
 
             {/* Table Area */}
             <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-              
-              {/* Filters Row */}
-              <div className="p-4 border-b border-gray-100 flex flex-col md:flex-row gap-3">
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={15} />
-                  <input 
-                    type="text" 
-                    placeholder="Search by name or admission no..." 
-                    className="w-full bg-white border border-gray-200 rounded-lg py-2 pl-9 pr-4 text-[13px] outline-none focus:border-gray-300 transition-colors"
-                  />
-                </div>
-                <div className="flex gap-3">
-                  <button className="flex items-center justify-between gap-8 bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-600 min-w-[120px] hover:bg-gray-50 transition-colors">
-                    <span>Class</span>
-                    <ChevronDown size={14} className="text-gray-400" />
-                  </button>
-                  <button className="flex items-center justify-between gap-8 bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-600 min-w-[120px] hover:bg-gray-50 transition-colors">
-                    <span>Status</span>
-                    <ChevronDown size={14} className="text-gray-400" />
-                  </button>
-                  <button className="flex items-center justify-between gap-8 bg-white border border-gray-200 rounded-lg px-3 py-2 text-[13px] text-gray-600 min-w-[120px] hover:bg-gray-50 transition-colors">
-                    <span>Gender</span>
-                    <ChevronDown size={14} className="text-gray-400" />
-                  </button>
-                </div>
+              <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                <h3 className="text-[15px] font-bold text-[#1a2332]">School-Wide Assessments</h3>
+                <button className="text-[12px] font-semibold text-gray-600 hover:text-[#1a2332]">View All</button>
               </div>
 
-              {/* Data Table */}
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-[13px]">
                   <thead className="bg-gray-50 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
                     <tr>
-                      <th className="px-6 py-4 font-bold border-b border-gray-100">Student</th>
-                      <th className="px-6 py-4 font-bold border-b border-gray-100">Admission No.</th>
-                      <th className="px-6 py-4 font-bold border-b border-gray-100">Parent</th>
-                      <th className="px-6 py-4 font-bold border-b border-gray-100">Fees</th>
-                      <th className="px-6 py-4 font-bold border-b border-gray-100 text-right"></th>
+                      <th className="px-6 py-4 font-bold border-b border-gray-100">Assessment</th>
+                      <th className="px-6 py-4 font-bold border-b border-gray-100">Teacher</th>
+                      <th className="px-6 py-4 font-bold border-b border-gray-100">Type</th>
+                      <th className="px-6 py-4 font-bold border-b border-gray-100">Status</th>
+                      <th className="px-6 py-4 font-bold border-b border-gray-100">Completion Rate</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {currentStudentsData.map((student) => (
-                      <tr key={student.id} className="hover:bg-gray-50 transition-colors group">
-                        <td className="px-6 py-3.5 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#1a2332] text-white flex items-center justify-center text-[11px] font-bold shrink-0">
-                              {student.initials}
-                            </div>
-                            <div>
-                              <p className="font-bold text-[#1a2332]">{student.name}</p>
-                              <p className="text-[11px] text-gray-500 mt-0.5">{student.details}</p>
-                            </div>
-                          </div>
+                    {assessmentsData.map((assessment) => (
+                      <tr key={assessment.id} className="hover:bg-gray-50 transition-colors">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <p className="font-bold text-[#1a2332]">{assessment.title}</p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">{assessment.className}</p>
                         </td>
-                        <td className="px-6 py-3.5 whitespace-nowrap text-gray-500">
-                          {student.admissionNo}
-                          <div className="text-[#1a2332] mt-0.5 font-medium">{student.className}</div>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <p className="font-bold text-[#1a2332]">{assessment.teacher}</p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">{assessment.subject}</p>
                         </td>
-                        <td className="px-6 py-3.5 whitespace-nowrap text-gray-500">
-                          {student.parent}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                            assessment.type === "Assignment" 
+                              ? "bg-blue-50 text-blue-700" 
+                              : "bg-purple-50 text-purple-700"
+                          }`}>
+                            {assessment.type}
+                          </span>
                         </td>
-                        <td className="px-6 py-3.5 whitespace-nowrap">
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
-                              student.feeStatus === "Paid" 
-                                ? "bg-green-100 text-green-700" 
-                                : student.feeStatus === "Partial"
-                                  ? "bg-amber-100 text-amber-700"
-                                  : "bg-red-100 text-red-600"
-                            }`}>
-                              {student.feeStatus}
-                            </span>
-                            {student.activities && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-[#e2e8f0] text-[#475569]">
-                                {student.activities} {student.activities === 1 ? 'activity' : 'activities'}
-                              </span>
-                            )}
-                          </div>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold ${
+                            assessment.status === "Active" 
+                              ? "bg-green-100 text-green-700" 
+                              : assessment.status === "Overdue"
+                                ? "bg-red-100 text-red-600"
+                                : "bg-gray-100 text-gray-600"
+                          }`}>
+                            {assessment.status}
+                          </span>
                         </td>
-                        <td className="px-6 py-3.5 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="text-gray-400 hover:text-[#1a2332]">
-                              <Edit size={15} />
-                            </button>
-                            <button className="text-gray-400 hover:text-[#1a2332]">
-                              <MoreVertical size={15} />
-                            </button>
-                          </div>
+                        <td className="px-6 py-4 whitespace-nowrap text-[12px] font-medium text-gray-600">
+                          {assessment.completionRate}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
-
             </div>
+
           </div>
         </div>
       </main>
-
-      <AddStudentModal isOpen={addStudentOpen} onClose={() => setAddStudentOpen(false)} />
 
     </div>
   );
