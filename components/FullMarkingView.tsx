@@ -28,8 +28,8 @@
  */
 
 import { useState, useEffect } from "react";
-import { submitGrade, getInlineComments } from "@/actions/grade";
-import { X, Star, Check, RefreshCw, Send } from "lucide-react";
+import { submitGrade, returnSubmission, getInlineComments } from "@/actions/grade";
+import { X, Star, Check, RefreshCw, Send, Loader2 } from "lucide-react";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -85,6 +85,7 @@ export function FullMarkingView({
   const [inlineComments, setInlineComments] = useState<InlineComment[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isReturning, setIsReturning] = useState(false);
 
   useEffect(() => {
     // Only attempt to fetch if the modal is open and we have a valid ID
@@ -159,9 +160,27 @@ export function FullMarkingView({
     }
   }
 
-  function handleReturn() {
-    console.log("Return to Student");
-    onClose();
+  async function handleReturn() {
+    setIsReturning(true);
+    setErrorMessage(null);
+
+    try {
+      const result = await returnSubmission({
+        submissionId: submissionId,
+        feedback: feedback,
+        pins: inlineComments.map((ic) => ({ x: ic.x, y: ic.y, text: ic.text })),
+      });
+
+      if (result?.error) {
+        setErrorMessage(result.error);
+      } else {
+        onClose();
+      }
+    } catch (err) {
+      setErrorMessage("An unexpected error occurred while returning to student.");
+    } finally {
+      setIsReturning(false);
+    }
   }
 
   return (
@@ -398,20 +417,21 @@ export function FullMarkingView({
           <div className="px-5 pb-5 pt-3 space-y-2 shrink-0 border-t border-gray-100">
             <button
               type="button"
-              disabled={isSubmitting}
+              disabled={isSubmitting || isReturning}
               onClick={handleSave}
               className="w-full flex items-center justify-center gap-2 bg-[#1a2332] text-white text-[12px] font-semibold py-3 rounded-xl hover:bg-[#243047] transition-colors disabled:opacity-50"
             >
-              <Check size={14} strokeWidth={2.5} />
+              {isSubmitting ? <Loader2 size={14} strokeWidth={2.5} className="animate-spin" /> : <Check size={14} strokeWidth={2.5} />}
               {isSubmitting ? "Saving Grade..." : "Save & Grade"}
             </button>
             <button
               type="button"
+              disabled={isSubmitting || isReturning}
               onClick={handleReturn}
-              className="w-full flex items-center justify-center gap-2 bg-green-500 text-white text-[12px] font-semibold py-3 rounded-xl hover:bg-green-600 transition-colors"
+              className="w-full flex items-center justify-center gap-2 bg-green-500 text-white text-[12px] font-semibold py-3 rounded-xl hover:bg-green-600 transition-colors disabled:opacity-50"
             >
-              <Send size={13} strokeWidth={2} />
-              Return to Student
+              {isReturning ? <Loader2 size={13} strokeWidth={2} className="animate-spin" /> : <Send size={13} strokeWidth={2} />}
+              {isReturning ? "Returning..." : "Return to Student"}
             </button>
           </div>
         </div>

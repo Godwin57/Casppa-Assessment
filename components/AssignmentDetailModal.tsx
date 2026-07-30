@@ -142,12 +142,14 @@ function SubmissionCard({
       </div>
 
       {/* File */}
-      <div className="flex items-center gap-1.5 mb-3">
-        <Paperclip size={12} className="text-gray-400" />
-        <span className="text-[11px] text-gray-500 underline underline-offset-2 cursor-pointer hover:text-[#1a2332] transition-colors">
-          {sub.fileName}
-        </span>
-      </div>
+      {sub.fileName && (
+        <div className="flex items-center gap-1.5 mb-3">
+          <Paperclip size={12} className="text-gray-400" />
+          <span className="text-[11px] text-gray-500 underline underline-offset-2 cursor-pointer hover:text-[#1a2332] transition-colors">
+            {sub.fileName}
+          </span>
+        </div>
+      )}
 
       {/* CTA */}
       {sub.isPending ? (
@@ -253,15 +255,21 @@ export function AssignmentDetailModal({
               Submissions ({assignment.submissionCount}/
               {assignment.totalStudents})
             </p>
-            <div className="space-y-3">
-              {assignment.submissions.map((sub) => (
-                <SubmissionCard
-                  key={sub.id}
-                  sub={sub}
-                  onMark={sub.isPending ? () => setMarkingSub(sub) : undefined}
-                />
-              ))}
-            </div>
+            {assignment.submissions && assignment.submissions.length > 0 ? (
+              <div className="space-y-3">
+                {assignment.submissions.map((sub) => (
+                  <SubmissionCard
+                    key={sub.id}
+                    sub={sub}
+                    onMark={sub.isPending ? () => setMarkingSub(sub) : undefined}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="text-[12px] text-gray-500 bg-gray-50 border border-gray-100 rounded-lg p-6 text-center">
+                No submissions have been graded or received yet.
+              </div>
+            )}
           </div>
         </div>
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useTransition, useEffect } from "react";
-import { X, UploadCloud, Paperclip, Check, Loader2 } from "lucide-react";
+import { X, UploadCloud, Paperclip, Check, Loader2, MessageSquare } from "lucide-react";
 import { submitAssignment } from "@/actions/submissions";
+import { getInlineComments } from "@/actions/grade";
 
 // ── Types ───────────────────────────────────────────────────────────────
 
@@ -14,6 +15,11 @@ export interface SubmitAssignmentModalProps {
     title: string;
     subject: string;
     dueDate: string;
+    isResubmission?: boolean;
+    submissionId?: string | null;
+    generalFeedback?: string | null;
+    studentNote?: string | null;
+    fileUrl?: string | null;
   };
   onSuccess: () => void;
 }
@@ -29,14 +35,34 @@ export default function SubmitAssignmentModal({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [noteValue, setNoteValue] = useState(assignment.studentNote || "");
+  const [inlineComments, setInlineComments] = useState<{ id: string; xCoordinate: number; yCoordinate: number; content: string }[]>([]);
 
   // Reset state on open
   useEffect(() => {
     if (isOpen) {
       setSelectedFile(null);
       setError(null);
+      setNoteValue(assignment.studentNote || "");
+      if (assignment.isResubmission && assignment.submissionId) {
+        getInlineComments(assignment.submissionId).then((res) => {
+          if (res.data) {
+            // Server returns { id, xCoordinate, yCoordinate, content }
+            setInlineComments(
+              res.data.map((p: any) => ({
+                id: p.id,
+                xCoordinate: p.xCoordinate,
+                yCoordinate: p.yCoordinate,
+                content: p.content,
+              }))
+            );
+          }
+        });
+      } else {
+        setInlineComments([]);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, assignment]);
 
   if (!isOpen) return null;
 
@@ -65,7 +91,7 @@ export default function SubmitAssignmentModal({
         {/* ── Header ── */}
         <div className="flex items-center justify-between px-4 sm:px-6 pt-5 pb-4 shrink-0">
           <h2 className="text-[16px] sm:text-[17px] font-bold text-[#1a2332]">
-            Submit Assignment
+            {assignment.isResubmission ? "Resubmit Assignment" : "Submit Assignment"}
           </h2>
           <button
             type="button"
@@ -97,9 +123,16 @@ export default function SubmitAssignmentModal({
           <div className="overflow-y-auto px-4 sm:px-6 pb-4 flex-1 space-y-4 sm:space-y-5">
             {/* Assignment info pill */}
             <div className="bg-gray-50 rounded-xl px-4 py-3">
-              <p className="text-[12px] sm:text-[13px] font-semibold text-[#1a2332] leading-snug">
-                {assignment.title}
-              </p>
+              <div className="flex items-center gap-2 mb-0.5">
+                {assignment.isResubmission && (
+                  <span className="text-[9px] font-bold text-orange-600 bg-orange-100 px-1.5 py-0.5 rounded uppercase tracking-wider">
+                    Returned for Revision
+                  </span>
+                )}
+                <p className="text-[12px] sm:text-[13px] font-semibold text-[#1a2332] leading-snug">
+                  {assignment.title}
+                </p>
+              </div>
               <p className="text-[11px] text-gray-400 mt-0.5">
                 {assignment.subject} &middot; Due {assignment.dueDate}
               </p>
@@ -115,19 +148,34 @@ export default function SubmitAssignmentModal({
               </p>
             )}
 
+            {/* Teacher Feedback */}
+            {assignment.isResubmission && assignment.generalFeedback && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl px-4 py-3">
+                <div className="flex items-center gap-1.5 mb-1.5">
+                  <MessageSquare size={14} className="text-blue-600" />
+                  <p className="text-[11px] font-bold text-blue-800">Teacher's Feedback</p>
+                </div>
+                <p className="text-[12px] text-blue-900 leading-relaxed">
+                  {assignment.generalFeedback}
+                </p>
+              </div>
+            )}
+
             {/* Answer / notes */}
             <div>
               <label
                 htmlFor="sa-text"
                 className="block text-[11px] sm:text-[12px] font-semibold text-[#1a2332] mb-1.5 sm:mb-2"
               >
-                Your answer / notes
+                {assignment.isResubmission ? "Update your answer / notes" : "Your answer / notes"}
               </label>
               <textarea
                 id="sa-text"
                 name="notes"
                 rows={4}
                 required
+                value={noteValue}
+                onChange={(e) => setNoteValue(e.target.value)}
                 placeholder="Type your answer, or describe the work you are attaching..."
                 className="w-full border border-gray-200 rounded-xl px-3.5 py-3 text-[12px] text-[#1a2332] placeholder:text-gray-300 focus:outline-none focus:ring-1 focus:ring-[#1a2332] resize-none transition"
               />
@@ -165,7 +213,7 @@ export default function SubmitAssignmentModal({
               </label>
 
               {/* File preview chip */}
-              {selectedFile && (
+              {selectedFile ? (
                 <div className="mt-2.5 flex items-center justify-between gap-3 bg-green-50 border border-green-200 rounded-lg px-3.5 py-2.5">
                   <div className="flex items-center gap-2 min-w-0">
                     <Paperclip size={13} className="text-green-600 shrink-0" />
@@ -177,7 +225,39 @@ export default function SubmitAssignmentModal({
                     {formatFileSize(selectedFile.size)}
                   </span>
                 </div>
-              )}
+              ) : assignment.isResubmission && assignment.fileUrl ? (
+                <div className="mt-3">
+                  <p className="text-[11px] font-semibold text-gray-500 mb-2">Previous Attachment (with pins)</p>
+                  <div className="relative inline-block bg-gray-50 rounded-lg border border-gray-200 overflow-hidden">
+                    <img src={assignment.fileUrl} alt="Previous work" className="max-w-full h-auto object-contain max-h-[300px]" />
+                    {/* Pins with pixel-perfect percentage coordinates */}
+                    {inlineComments.map((pin, index) => (
+                      <div
+                        key={pin.id}
+                        className="absolute w-5 h-5 bg-yellow-400 text-[#1a2332] rounded-full flex items-center justify-center text-[9px] font-bold shadow-md pointer-events-none ring-2 ring-white"
+                        style={{
+                          left: `${pin.xCoordinate}%`,
+                          top: `${pin.yCoordinate}%`,
+                          transform: "translate(-50%, -50%)",
+                        }}
+                        title={pin.content}
+                      >
+                        {index + 1}
+                      </div>
+                    ))}
+                  </div>
+                  {inlineComments.length > 0 && (
+                    <div className="mt-2 space-y-1.5 bg-yellow-50/50 p-2.5 rounded-lg border border-yellow-100">
+                      {inlineComments.map((pin, index) => (
+                        <p key={pin.id} className="text-[11px] text-gray-700">
+                          <span className="font-bold text-[#1a2332] bg-yellow-300 w-4 h-4 inline-flex items-center justify-center rounded-full text-[9px] mr-1.5">{index + 1}</span>
+                          {pin.content}
+                        </p>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
             </div>
           </div>
 
@@ -201,7 +281,7 @@ export default function SubmitAssignmentModal({
               ) : (
                 <Check size={13} strokeWidth={2.5} />
               )}
-              {isPending ? "Submitting…" : "Submit"}
+              {isPending ? "Submitting…" : assignment.isResubmission ? "Resubmit" : "Submit"}
             </button>
           </div>
         </form>

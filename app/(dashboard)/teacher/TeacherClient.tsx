@@ -29,6 +29,7 @@ import {
   type SubmissionItem,
 } from "@/components/AssignmentDetailModal";
 import CreateAssignmentModal from "@/components/CreateAssignmentModal";
+import { getAssignmentSubmissions } from "@/actions/teacher";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -173,7 +174,9 @@ export default function TeacherClient({
     useState<AssignmentDetail | null>(null);
   const [isCreateOpen, setIsCreateOpen] = useState(false);
 
-  function handleCardClick(a: Assignment) {
+  async function handleCardClick(a: Assignment) {
+    const { submissions } = await getAssignmentSubmissions(a.id);
+
     setSelectedAssignment({
       id: a.id,
       title: a.title,
@@ -187,7 +190,7 @@ export default function TeacherClient({
       instructions: a.description || "No description provided.",
       submissionCount: a.submissionCount,
       totalStudents: 30, // Fallback
-      submissions: [], // Handled dynamically in a later step
+      submissions: submissions as SubmissionItem[] || [],
     });
   }
 

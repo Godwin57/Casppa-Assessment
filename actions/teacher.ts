@@ -43,3 +43,56 @@ export async function getTeacherAssignments() {
     return { assignments: [], error: "Failed to load assignments." };
   }
 }
+
+export async function getAssignmentSubmissions(assignmentId: string) {
+  try {
+    const assignment = await prisma.assignment.findUnique({
+      where: { id: assignmentId },
+      include: {
+        submissions: {
+          include: {
+            student: { select: { name: true } },
+            inlineComments: true,
+          },
+          orderBy: { status: "asc" }, // Pending first maybe? Or just by student name.
+        },
+      },
+    });
+
+    if (!assignment) {
+      return { error: "Assignment not found." };
+    }
+
+    const formattedSubmissions = assignment.submissions.map((sub) => {
+      const studentName = sub.student?.name || "Unknown Student";
+      const nameParts = studentName.split(" ");
+      const initials = nameParts.length > 1 
+        ? `${nameParts[0][0]}${nameParts[1][0]}`.toUpperCase()
+        : `${nameParts[0][0]}`.toUpperCase();
+
+      const fileName = sub.fileUrl ? sub.fileUrl.split("/").pop() || "Attached File" : "";
+
+      return {
+        id: sub.id,
+        initials,
+        name: studentName,
+        submittedAt: "Recently", // You can format a real date if you add createdAt to Submission
+        isPending: sub.status === "PENDING",
+        studentNote: sub.content || "",
+        fileName: fileName,
+        fileUrl: sub.fileUrl || undefined,
+        score: sub.score !== null ? sub.score : undefined,
+        maxScore: 100, // Assuming 100 for now
+        evaluation: sub.evaluation || undefined,
+        awaitingResubmission: sub.status === "RETURNED" && sub.evaluation === "NEEDS_REVISION",
+        teacherFeedback: sub.generalFeedback || undefined,
+      };
+    });
+
+    return { submissions: formattedSubmissions };
+  } catch (error) {
+    console.error("Failed to fetch assignment submissions:", error);
+    return { error: "Failed to load submissions." };
+  }
+}
+
