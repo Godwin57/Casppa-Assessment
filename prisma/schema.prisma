@@ -101,6 +101,7 @@ model Submission {
   student        User            @relation("StudentSubmissions", fields: [studentId], references: [id], onDelete: Restrict)
   answers        Answer[]
   inlineComments InlineComment[]
+  content         String?  @db.Text
 }
 
 model Answer {
