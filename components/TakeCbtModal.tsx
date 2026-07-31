@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { X, Loader2, CheckCircle2, ChevronRight, ChevronLeft } from "lucide-react";
+import {
+  X,
+  Loader2,
+  CheckCircle2,
+  ChevronRight,
+  ChevronLeft,
+} from "lucide-react";
 import { getCbtExam, submitCbtExam } from "@/actions/cbt";
 
 export default function TakeCbtModal({
@@ -21,7 +27,7 @@ export default function TakeCbtModal({
 
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
-  
+
   const [showResult, setShowResult] = useState(false);
   const [finalScore, setFinalScore] = useState<number | null>(null);
   const [resultStatus, setResultStatus] = useState<string>("MARKED");
@@ -67,26 +73,31 @@ export default function TakeCbtModal({
         setShowResult(true);
         onSuccess();
       } else {
-        setError(result.error);
+        setError(result.error || "An unexpected error occurred");
       }
     });
   }
 
   const currentQuestion = exam?.questions[currentQuestionIdx];
-  const maxScore = exam?.questions.reduce((sum: number, q: any) => sum + q.points, 0);
+  const maxScore = exam?.questions.reduce(
+    (sum: number, q: any) => sum + q.points,
+    0,
+  );
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
       <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden">
-        
         <div className="flex items-center justify-between px-6 pt-5 pb-4 shrink-0 border-b border-gray-100">
           <h2 className="text-[17px] font-bold text-[#1a2332]">
             {exam ? exam.title : "CBT Assessment"}
           </h2>
           {!showResult && (
-             <button onClick={onClose} className="text-gray-400 hover:text-[#1a2332] transition-colors">
-               <X size={18} strokeWidth={2} />
-             </button>
+            <button
+              onClick={onClose}
+              className="text-gray-400 hover:text-[#1a2332] transition-colors"
+            >
+              <X size={18} strokeWidth={2} />
+            </button>
           )}
         </div>
 
@@ -99,29 +110,49 @@ export default function TakeCbtModal({
           ) : showResult ? (
             <div className="flex-1 flex flex-col items-center justify-center py-10 text-center">
               <CheckCircle2 size={64} className="text-green-500 mb-6" />
-              <h3 className="text-2xl font-bold text-[#1a2332] mb-2">Assessment Completed!</h3>
-              
+              <h3 className="text-2xl font-bold text-[#1a2332] mb-2">
+                Assessment Completed!
+              </h3>
+
               {resultStatus === "PENDING" ? (
                 <>
-                  <p className="text-gray-500 mb-8">Your submission includes short answers and is pending manual review.</p>
+                  <p className="text-gray-500 mb-8">
+                    Your submission includes short answers and is pending manual
+                    review.
+                  </p>
                   <div className="bg-amber-50 border border-amber-200 text-amber-700 rounded-2xl p-8 mb-8 w-full max-w-sm shadow-sm text-center">
-                    <p className="font-bold text-[15px]">Pending Manual Review</p>
-                    <p className="text-[12px] mt-2 text-amber-600">Your final score will be available once your teacher grades your written answers.</p>
+                    <p className="font-bold text-[15px]">
+                      Pending Manual Review
+                    </p>
+                    <p className="text-[12px] mt-2 text-amber-600">
+                      Your final score will be available once your teacher
+                      grades your written answers.
+                    </p>
                   </div>
                 </>
               ) : (
                 <>
-                  <p className="text-gray-500 mb-8">Your answers have been auto-graded successfully.</p>
+                  <p className="text-gray-500 mb-8">
+                    Your answers have been auto-graded successfully.
+                  </p>
                   <div className="bg-white border border-gray-200 rounded-2xl p-8 mb-8 w-full max-w-sm shadow-sm">
-                    <p className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">Final Score</p>
+                    <p className="text-[13px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                      Final Score
+                    </p>
                     <p className="text-5xl font-black text-[#1a2332]">
-                      {finalScore} <span className="text-2xl text-gray-400 font-bold">/ {maxScore}</span>
+                      {finalScore}{" "}
+                      <span className="text-2xl text-gray-400 font-bold">
+                        / {maxScore}
+                      </span>
                     </p>
                   </div>
                 </>
               )}
 
-              <button onClick={onClose} className="bg-[#1a2332] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#243047] transition-colors">
+              <button
+                onClick={onClose}
+                className="bg-[#1a2332] text-white px-6 py-3 rounded-xl font-bold hover:bg-[#243047] transition-colors"
+              >
                 Back to Dashboard
               </button>
             </div>
@@ -152,14 +183,17 @@ export default function TakeCbtModal({
                 <div className="space-y-3 mt-auto">
                   {currentQuestion.type === "MCQ" ? (
                     currentQuestion.options.map((opt: string, idx: number) => {
-                      const isSelected = answers[currentQuestion.id] === idx.toString();
+                      const isSelected =
+                        answers[currentQuestion.id] === idx.toString();
                       return (
                         <button
                           key={idx}
-                          onClick={() => handleSelect(currentQuestion.id, idx.toString())}
+                          onClick={() =>
+                            handleSelect(currentQuestion.id, idx.toString())
+                          }
                           className={`w-full text-left px-5 py-3.5 rounded-xl border-2 transition-all duration-200 ${
-                            isSelected 
-                              ? "border-[#1a2332] bg-[#f8fafc] text-[#1a2332] font-bold shadow-sm" 
+                            isSelected
+                              ? "border-[#1a2332] bg-[#f8fafc] text-[#1a2332] font-bold shadow-sm"
                               : "border-gray-100 bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-50 font-medium"
                           }`}
                         >
@@ -178,8 +212,8 @@ export default function TakeCbtModal({
                           key={opt}
                           onClick={() => handleSelect(currentQuestion.id, opt)}
                           className={`w-full text-left px-5 py-3.5 rounded-xl border-2 transition-all duration-200 ${
-                            isSelected 
-                              ? "border-[#1a2332] bg-[#f8fafc] text-[#1a2332] font-bold shadow-sm" 
+                            isSelected
+                              ? "border-[#1a2332] bg-[#f8fafc] text-[#1a2332] font-bold shadow-sm"
                               : "border-gray-100 bg-white text-gray-600 hover:border-gray-200 hover:bg-gray-50 font-medium"
                           }`}
                         >
@@ -191,17 +225,19 @@ export default function TakeCbtModal({
                     <textarea
                       placeholder="Type your answer here..."
                       value={answers[currentQuestion.id] || ""}
-                      onChange={(e) => handleSelect(currentQuestion.id, e.target.value)}
+                      onChange={(e) =>
+                        handleSelect(currentQuestion.id, e.target.value)
+                      }
                       className="w-full h-32 p-4 rounded-xl border-2 border-gray-100 bg-white text-[#1a2332] text-[14px] focus:border-[#1a2332] focus:outline-none transition-all resize-none"
                     />
                   )}
                 </div>
               </div>
-              
+
               {/* Controls */}
               <div className="flex items-center justify-between mt-auto">
-                <button 
-                  onClick={handlePrev} 
+                <button
+                  onClick={handlePrev}
                   disabled={currentQuestionIdx === 0}
                   className="flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-[13px] text-gray-500 hover:bg-white hover:shadow-sm disabled:opacity-50 transition-all"
                 >
@@ -209,17 +245,22 @@ export default function TakeCbtModal({
                 </button>
 
                 {currentQuestionIdx === exam.questions.length - 1 ? (
-                  <button 
-                    onClick={handleSubmit} 
-                    disabled={isPending || Object.keys(answers).length < exam.questions.length}
+                  <button
+                    onClick={handleSubmit}
+                    disabled={
+                      isPending ||
+                      Object.keys(answers).length < exam.questions.length
+                    }
                     className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-[13px] bg-[#1a2332] text-white hover:bg-[#243047] disabled:opacity-50 transition-all shadow-sm"
                   >
-                    {isPending && <Loader2 size={14} className="animate-spin" />}
+                    {isPending && (
+                      <Loader2 size={14} className="animate-spin" />
+                    )}
                     Submit Exam
                   </button>
                 ) : (
-                  <button 
-                    onClick={handleNext} 
+                  <button
+                    onClick={handleNext}
                     className="flex items-center gap-2 px-6 py-2.5 rounded-xl font-bold text-[13px] bg-white border border-gray-200 text-[#1a2332] hover:bg-gray-50 transition-all shadow-sm"
                   >
                     Next <ChevronRight size={16} />

@@ -133,7 +133,6 @@ export default function CreateAssignmentModal({
                 description: formData.get("description") as string,
                 type: "FILE_UPLOAD",
                 dueDate: formData.get("dueDate") as string,
-                teacherId,
               });
               if (result.success) {
                 onClose();

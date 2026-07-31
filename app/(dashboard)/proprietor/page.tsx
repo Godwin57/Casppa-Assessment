@@ -4,10 +4,10 @@ import DashboardClient from "./DashboardClient";
 export default async function ProprietorDashboardHome() {
   const data = await getAcademicOversightData();
 
-  if (data.error) {
+  if ("error" in data || !data.metrics) {
     return (
-      <div className="p-8 text-red-500">
-        Failed to load dashboard data. Check database connection.
+      <div className="p-6 text-red-500">
+        Failed to load dashboard data: {data.error || "Unknown error"}
       </div>
     );
   }
