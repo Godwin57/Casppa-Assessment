@@ -1,6 +1,5 @@
-import AssignmentDetailModalDemo from "@/components/AssignmentDetailModal";
+import { redirect } from "next/navigation";
 
-export default function Home() {
-  return <AssignmentDetailModalDemo />;
+export default function HomePage() {
+  redirect("/teacher");
 }
-
