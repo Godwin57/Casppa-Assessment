@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { AssignmentType } from "@prisma/client";
-import { revalidatePath } from "next/cache";
 
 // ── Input type ─────────────────────────────────────────────────────────────
 
